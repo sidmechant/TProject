@@ -11,6 +11,7 @@ import { Slider, SliderFilledTrack, SliderThumb, SliderTrack, Input } from "@cha
 import NavbarChat from './NavbarChat.tsx';
 import NavbarFriends from './NavbarFriends.tsx';
 import NavbarNotif from './NavbarNotif.tsx';
+import * as API from '../Profil/FetchApi.tsx';
 
 function ChatMain() {
 	const [ menu, setMenu ] = useState<number>(1);
@@ -118,6 +119,7 @@ export default function NewChatBox() {
 	const [ isChatBoxOpen, setChatBoxOpen ] = useState<boolean>(false);
 	const [ notification, setNotification ] = useState<boolean>(true);
 	const [ chatRatio , setChatRatio ] = useState<number>(1);
+    const [ myUser, setMyUser ] = useState<any>(null);
 
 	const chatSize = 16 + chatRatio;
 
@@ -133,6 +135,17 @@ export default function NewChatBox() {
 			//ToggleChat();
 	};
 
+    useEffect(() => {
+    
+        const GetUserData = async () => {
+
+            const fetchedUser = await API.getPlayerDataApi();
+
+            console.log("fetchedUser: ", fetchedUser);
+            setMyUser(fetchedUser);
+        };
+    }, []);
+
 	useEffect(() => {
 		if (isChatBoxOpen) {
 			document.addEventListener('mousedown', handleClickOutside);
@@ -142,6 +155,9 @@ export default function NewChatBox() {
 		};
 	}, [isChatBoxOpen]);
 
+    if (!myUser)
+        return <></>
+        
 	return (
 		<div className='z-10'>
 			{!isChatBoxOpen && (
