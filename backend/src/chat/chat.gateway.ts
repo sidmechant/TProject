@@ -9,21 +9,24 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { FriendRequestsEvents } from '../friend-request/friends.events';
 import { GatewaySessionManager } from './chat.session'; // Importez votre gestionnaire de sessions
+import { OnEvent } from '@nestjs/event-emitter';
+import { Friend, User } from '@prisma/client';
+
 
 @WebSocketGateway({
   cors: {
     origin: '*',
   },
 })
-export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
+export class ChatGateway
+  implements OnGatewayConnection, OnGatewayDisconnect
+{
   @WebSocketServer()
   server: Server;
 
   constructor(
-    private readonly friendRequestsEvents: FriendRequestsEvents,
-    public readonly sessionManager: GatewaySessionManager, // Injectez votre GatewaySessionManager
+    public readonly sessionManager: GatewaySessionManager // Injectez votre GatewaySessionManager
   ) {}
 
   async handleConnection(client: Socket) {
@@ -49,19 +52,29 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.server.emit('message', formattedMessage);
   }
 
-  @SubscribeMessage('onFriendRequestReceived')
-  onFriendRequestReceived(client: Socket, payload: any): void {
-    // Traitez ici l'événement de demande d'ami reçu
-    console.log('Received Friend Request:', payload);
-    // Vous pouvez émettre des messages à partir de cet événement à d'autres clients, le cas échéant
+  @OnEvent('friendrequest.create')
+  emitFriendRequestCreate(payload: Friend) {
+    const receiverSocket = this.sessionManager.getUserSocket(payload.friendId);
+    receiverSocket && receiverSocket.emit('onFriendRequestReceived', payload);
   }
 
-  @SubscribeMessage('onFriendRequestCancelled')
-  onFriendRequestCancelled(client: Socket, payload: any): void {
-    // Traitez ici l'événement de demande d'ami annulée reçue
-    console.log('Cancelled Friend Request:', payload);
-    // Vous pouvez émettre des messages à partir de cet événement à d'autres clients, le cas échéant
+  @OnEvent('friendrequest.cancel')
+  emitFriendRequestCancel(payload: Friend) {
+    const receiverSocket = this.sessionManager.getUserSocket(payload.friendId);
+    receiverSocket && receiverSocket.emit('onFriendRequestCancelled', payload);
   }
 
-  // Ajoutez des méthodes similaires pour gérer les autres événements de demande d'amis
+  @OnEvent('friendrequest.accept')
+  emitFriendRequestAccepted(payload: Friend) {
+    const senderSocket = this.sessionManager.getUserSocket(payload.userId);
+    senderSocket && senderSocket.emit('onFriendRequestAccepted', payload);
+  }
+
+  @OnEvent('friendrequest.reject')
+  emitFriendRequestRejected(payload: Friend) {
+    const senderSocket = this.sessionManager.getUserSocket(payload.userId);
+    senderSocket && senderSocket.emit('onFriendRequestRejected', payload);
+  }
 }
+  // Ajoutez des méthodes similaires pour gérer les autres événements de demande d'amis
+

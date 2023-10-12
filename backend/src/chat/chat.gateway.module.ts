@@ -26,16 +26,19 @@ import { Module } from '@nestjs/common';
 import { ChatGateway } from './chat.gateway';
 import { ChatGatewayService } from './chat-gateway.service';
 import { ChannelService } from './chat.service';
-import { FriendRequestsEvents } from '../friend-request/friends.events';
+// import { FriendRequestsEvents } from '../friend-request/friends.events';
 import { GatewaySessionManager } from './chat.session'; // Importez la classe qui implémente IGatewaySessionManager
+import { FriendsModule } from 'src/friends/friends.module';
+import { FriendsService } from 'src/friends/friends.service';
 
 @Module({
-  imports: [],
+  imports: [FriendsModule],
   providers: [
     ChatGateway,
     ChatGatewayService,
     ChannelService,
-    FriendRequestsEvents,
+    FriendsService,
+    // FriendRequestsEvents,
     GatewaySessionManager, // Assurez-vous que GatewaySessionManager est inclus ici
   ],
 })
