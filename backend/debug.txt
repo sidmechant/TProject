@@ -1,0 +1,35 @@
+import { Module } from '@nestjs/common';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
+import { AuthModule } from './auth/auth.module';
+import { PrismaModule } from '../prisma/prisma.module'
+import { CrudModule } from './crud/crud.module'; // Importez CrudModule
+
+@Module({
+  imports: [AuthModule, PrismaModule, CrudModule],
+  controllers: [AppController],
+  providers: [AppService],
+})
+export class AppModule {}
+import { Module } from '@nestjs/common';
+import { CrudService } from './crud.service';
+import { PrismaModule } from '../../prisma/prisma.module'
+
+@Module({
+  imports: [PrismaModule],
+  providers: [CrudService],
+  exports: [CrudService], // Assurez-vous d'exporter le service
+})
+export class CrudModule {}
+import { Module } from '@nestjs/common';
+import { AuthService } from './auth.service';
+import { AuthController } from './auth.controller';
+import { FortyTwoapiModule } from './forty-twoapi/forty-twoapi.module';
+import { Prisma } from '@prisma/client';
+
+@Module({
+  providers: [AuthService],
+  controllers: [AuthController],
+  imports: [FortyTwoapiModule]
+})
+export class AuthModule {}

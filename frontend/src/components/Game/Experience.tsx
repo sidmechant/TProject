@@ -1,0 +1,33 @@
+import { ReactElement, useEffect, useRef } from 'react';
+import EndExperience from './EndExperience';
+import Play from './Play';
+import StarsAnimation from '../Animation/StarsAnimation'
+import BackGroundTransition from '../BackGroundTransition';
+import { useGame } from '../../store/hooks/useGame';
+
+export default function Experience(): ReactElement {
+	const { state, context, send } = useGame();
+	const starsRef = useRef<THREE.Group>(null);
+
+	useEffect(() => {
+		send({type:'setStarsRef', starsRef});
+	}, [starsRef]);
+	
+	return <>
+		{
+			(['Mode', 'Map'].includes(state))
+				? <>
+					<BackGroundTransition />
+				</>
+				: <>
+					<Play />
+					{(state === 'End') && <EndExperience />}
+				</>
+		}
+		{((['Mode', 'Map', 'Loading'].includes(state)) || (state === 'Animation') && context.animation === 'Intro') &&
+			<group>
+				<StarsAnimation refStars={starsRef}/>
+			</group>
+		}
+	</>;
+}

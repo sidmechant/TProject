@@ -1,0 +1,5 @@
+photo de profil
+pseudo
+ma liste d'amis
+liste de conversation dans lesquels je suis
+            -> tout les messages de la conv

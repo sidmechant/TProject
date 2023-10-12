@@ -1,0 +1,14 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+    font-family: 'NeueMachina-Regular';
+    /* background-color: #6b37e6; */
+    src: url('/fonts/NeueMachina-Regular.otf') format('opentype');
+}
+
+
+.Chat {
+  font-family: sans-serif;
+}
