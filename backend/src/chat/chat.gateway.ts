@@ -42,7 +42,7 @@ export class ChatGateway
 
     // Utilisez votre sessionManager pour supprimer le socket de l'utilisateur lorsqu'il se déconnecte
     const token = client.handshake.query.token as string;
-    // this.sessionManager.removeUserSocket(token);
+    this.sessionManager.removeUserSocket(token);
   }
 
   @SubscribeMessage('message')

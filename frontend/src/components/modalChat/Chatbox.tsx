@@ -144,6 +144,8 @@ export default function NewChatBox() {
             console.log("fetchedUser: ", fetchedUser);
             setMyUser(fetchedUser);
         };
+        GetUserData();
+
     }, []);
 
 	useEffect(() => {
@@ -157,7 +159,7 @@ export default function NewChatBox() {
 
     if (!myUser)
         return <></>
-        
+
 	return (
 		<div className='z-10'>
 			{!isChatBoxOpen && (

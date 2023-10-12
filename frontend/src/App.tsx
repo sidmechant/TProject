@@ -37,7 +37,7 @@ function App() {
 	return (
 		<ChakraProvider>
 			<GlobalStyle />
-			{/* <Connection> */}
+			<Connection>
 				<ChatBoxContext.Provider value={{ isChatBoxOpen, setIsChatBoxOpen }}>
 					<AnimatePresence mode="wait">
 						<Routes location={location} key={location.pathname}>
@@ -64,7 +64,7 @@ function App() {
 						</Routes>
 					</AnimatePresence>
 				</ChatBoxContext.Provider>
-			{/* </Connection> */}
+			</Connection>
 			<NewChatBox />
 		</ChakraProvider>
 	)

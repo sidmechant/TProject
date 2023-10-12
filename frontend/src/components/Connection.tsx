@@ -54,6 +54,7 @@ export function SetConnection({ children }: { children: ReactNode }): ReactEleme
 
 			let localToken = getToken('token');
 			if (localToken) {
+				localStorage.setItem('token', localToken);
 				setIsLoading(false);
 				clearInterval(interval);
 				setToken(localToken);
@@ -157,6 +158,7 @@ export function SetConnection({ children }: { children: ReactNode }): ReactEleme
 			console.log("token");
 			const fetchData = async () => {
 				try {
+					localStorage.setItem('token', token);
 					const response = await fetch('http://localhost:3000/42/user', {
 						headers: { 'Authorization': `Bearer ${token}` },
 						credentials: 'include'
