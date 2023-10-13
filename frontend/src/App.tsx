@@ -10,7 +10,7 @@ import { ChatBoxContext } from './components/ContextBoard';
 import { GlobalStyle } from './styles/HomeStyles';
 import AnimatedPage from './components/AnimatedPage';
 import { UserInfosContext } from './components/ContextBoard';
-import Test from './pages/Test';
+//import Test from './pages/Test';
 import Chat from './pages/Chat';
 import { Connection } from './components/Connection';
 import { ChakraProvider } from '@chakra-ui/react'
@@ -50,9 +50,9 @@ function App() {
 							<Route path="/game" element={
 								<Game />
 							} />
-							<Route path="/test" element={
+							{/*<Route path="/test" element={
 								<Test />
-							} />
+							} />*/}
 							<Route path="/profile" element={
 								<AnimatedPage endColor="#71ca71">
 									<Profil />

@@ -125,8 +125,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   handleConnection(client: Socket) {
-    const token = client.handshake.query.token as string; // TMP
-    console.log('Client connected:', token);
+    /*const token = client.handshake.query.token as string; // TMP
+    console.log('Client connected:', token);*/
   }
   // async handleConnection(client: Socket) {
   //   try {
@@ -164,8 +164,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   handleDisconnect(client: Socket) {
     match.remove(client);
-    const token = client.handshake.query.token as string; // TMP
-    console.log('Client disconnected:', token);
+    /*const token = client.handshake.query.token as string; // TMP
+    console.log('Client disconnected:', token);*/
   }
 
   @SubscribeMessage('ball')

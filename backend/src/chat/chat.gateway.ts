@@ -30,7 +30,8 @@ export class ChatGateway
   ) {}
 
   async handleConnection(client: Socket) {
-    const token = client.handshake.query.token as string;
+    console.log("QUERY = ", client.handshake.query);
+    const token = client.handshake.query.jwt_token as string;
     console.log('Client connected CHAT:', token);
 
     // Utilisez votre sessionManager pour associer le socket à l'utilisateur
@@ -38,10 +39,9 @@ export class ChatGateway
   }
 
   async handleDisconnect(client: Socket) {
-    console.log('Client disconnected CHAT:', client.id);
-
     // Utilisez votre sessionManager pour supprimer le socket de l'utilisateur lorsqu'il se déconnecte
     const token = client.handshake.query.token as string;
+    console.log('Client disconnected CHAT:', token);
     this.sessionManager.removeUserSocket(token);
   }
 

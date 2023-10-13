@@ -32,6 +32,70 @@ export const getPlayerDataApi = async () => {
 	return data;
 };
 
+export const fetcher = async (path: string) => {
+	const response = await fetch(`http://localhost:3000/${path}`, {
+		method: 'GET',
+		headers: { 'Accept': 'application/json' },
+		credentials: 'include',
+	});
+
+	if (!response.ok) {
+		console.log("Error");
+		const error = new Error() as any;
+		error.statusCode = response.status;
+		error.message = await response.text();
+
+		// Essayons de parser le message d'erreur
+		try {
+			const parsedMessage = JSON.parse(error.message);
+			if (parsedMessage.statusCode === 428) {
+				error.statusCode = 428;
+				error.message = parsedMessage.error;
+			}
+		} catch (e) {
+			// Si le parsing échoue, on ne fait rien et on conserve le comportement par défaut
+		}
+
+		console.log("Error", response);
+		throw error;
+	}
+
+	const data = await response.json();
+	return data;
+};
+
+export const getPlayerDataFriends = async () => {
+	const response = await fetch('http://localhost:3000/friends/friends', {
+		method: 'GET',
+		headers: { 'Accept': 'application/json' },
+		credentials: 'include',
+	});
+
+	if (!response.ok) {
+		console.log("Error");
+		const error = new Error() as any;
+		error.statusCode = response.status;
+		error.message = await response.text();
+
+		// Essayons de parser le message d'erreur
+		try {
+			const parsedMessage = JSON.parse(error.message);
+			if (parsedMessage.statusCode === 428) {
+				error.statusCode = 428;
+				error.message = parsedMessage.error;
+			}
+		} catch (e) {
+			// Si le parsing échoue, on ne fait rien et on conserve le comportement par défaut
+		}
+
+		console.log("Error", response);
+		throw error;
+	}
+
+	const data = await response.json();
+	return data;
+};
+
 export const generate2FACodeApi = async () => {
 
 	const token = document.cookie

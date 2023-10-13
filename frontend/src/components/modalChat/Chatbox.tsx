@@ -12,9 +12,18 @@ import NavbarChat from './NavbarChat.tsx';
 import NavbarFriends from './NavbarFriends.tsx';
 import NavbarNotif from './NavbarNotif.tsx';
 import * as API from '../Profil/FetchApi.tsx';
+import MainChat from './MainChat.tsx';
 
-function ChatMain() {
+interface User {
+    id: number;
+    pseudo: string;
+    urlPhotoProfile: string;
+    userId: number;
+}
+
+function ChatMain(myUser: any) {
 	const [ menu, setMenu ] = useState<number>(1);
+    const [ main, setMain ] = useState<number>(1);
 	const [ inputFocus, setInputFocus ] = useState<boolean>(false);
 	const [ value, setValue ] = useState<string>('');
 	const [ navStyles, setNavStyles ] = useState({
@@ -23,6 +32,7 @@ function ChatMain() {
 		NavThree: 'newNavThree',
 	});
 
+    const user = myUser.myUser as User;
 	const handleValue = (event: any) => setValue(event.target.value);
 
 	const submitMessage = () => {
@@ -87,28 +97,7 @@ function ChatMain() {
 				</div>
 				{menu === 1 ? <NavbarChat /> : (menu === 2 ? <NavbarFriends /> : <NavbarNotif />)}
 			</div>
-			<div className="bg-slate-500/30 newMain"></div>
-			<div className="bg-slate-500/70 newMessage flex justify-center items-center">
-				<Input
-				className='mx-5'
-				value={value}
-				onChange={handleValue}
-				textColor='white'
-				placeholder='Send a message...'
-				focusBorderColor='pink.400'
-				onFocus={() => setInputFocus(true)}
-				onBlur={() => setInputFocus(false)}
-				onKeyDown={(event) => handleEnterInput(event)}
-				size='sm'
-      			/>
-				<motion.button 
-				whileHover={{rotate: -90}}
-				onClick={() => submitMessage()}
-				className='mr-5 h-7 w-10 border border-1 border-white text-gray flex justify-center items-center
-				  hover:text-white'>
-					<AiOutlineSend />
-				</motion.button>
-			</div>
+			<MainChat />
 		</>
 	)
 }
@@ -141,8 +130,7 @@ export default function NewChatBox() {
 
             const fetchedUser = await API.getPlayerDataApi();
 
-            console.log("fetchedUser: ", fetchedUser);
-            setMyUser(fetchedUser);
+            setMyUser(fetchedUser.player);
         };
         GetUserData();
 
@@ -214,7 +202,7 @@ export default function NewChatBox() {
 								</Slider>
 							</div>
 						</div>
-						<ChatMain />
+						<ChatMain myUser={myUser}/>
 					</motion.div>
 			)}
 		</div>
