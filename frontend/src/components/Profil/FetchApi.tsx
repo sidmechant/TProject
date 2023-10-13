@@ -213,4 +213,5 @@ export const getDataByPseudoApi = async (pseudo: string) => {
 
 	const playerData = await response.json();
 	return playerData;
+
 };

@@ -12,7 +12,7 @@ import { Server, Socket } from 'socket.io';
 import { GatewaySessionManager } from './chat.session'; // Importez votre gestionnaire de sessions
 import { OnEvent } from '@nestjs/event-emitter';
 import { Friend, User } from '@prisma/client';
-
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @WebSocketGateway({
   cors: {
@@ -26,7 +26,7 @@ export class ChatGateway
   server: Server;
 
   constructor(
-    public readonly sessionManager: GatewaySessionManager // Injectez votre GatewaySessionManager
+    public readonly sessionManager: GatewaySessionManager,   private readonly eventEmitter: EventEmitter2 // Injectez votre GatewaySessionManager
   ) {}
 
   async handleConnection(client: Socket) {
