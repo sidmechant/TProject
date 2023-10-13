@@ -138,8 +138,8 @@ async searchPseudo(@Req() req, @Query('pseudo') pseudoToSearch: string): Promise
   async getFriendsOnline(@Req() req): Promise<User[]> {
     try {
       // Récupérez l'ID de l'utilisateur à partir de votre JwtAuthGuard, car il le décode
-      const userId = req.userId; // Assurez-vous que req est correctement défini
-
+      const id = req.userId; // Assurez-vous que req est correctement défini
+      const userId = Number(req.userId);
       return await this.friendsService.getFriendsOnline(userId);
     } catch (error) {
       // Gérez les erreurs ici, par exemple, en lançant une exception ou en journalisant.
@@ -149,6 +149,32 @@ async searchPseudo(@Req() req, @Query('pseudo') pseudoToSearch: string): Promise
 
 
 
+  @Get('pending')
+  @UseGuards(JwtAuthGuard)  // Supprimez cette ligne si vous n'utilisez pas de garde d'authentification
+  async getPendingFriends(@Req() req) {
+    const id = req.userId; // Assurez-vous que req est correctement défini
+    const userId = Number(req.userId);// 
+      const pendingFriends = await this.friendsService.getPendingFriends(userId);
+      return pendingFriends;
+  }
+
+  @Get('accepted')
+  @UseGuards(JwtAuthGuard)  // Supprimez cette ligne si vous n'utilisez pas de garde d'authentification
+  async getAcceptedFriends(@Req() req) {
+    const id = req.userId; // Assurez-vous que req est correctement défini
+    const userId = Number(req.userId);
+      const acceptedFriends = await this.friendsService.getAcceptedFriends(userId);
+      return acceptedFriends;
+  }
+
+
+  @Get('blocked')
+  @UseGuards(JwtAuthGuard)
+  async getBlockedUsers(@Req() req): Promise<User[]> {
+    const id = req.userId; // Assurez-vous que req est correctement défini
+    const userId = Number(req.userId);// Cela dépend de la façon dont vous définissez l'ID de l'utilisateur connecté
+    return await this.friendsService.getBlockedUsers(userId);
+  }
 
 
 }
