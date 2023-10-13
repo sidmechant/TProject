@@ -3,7 +3,7 @@ import HomeLoading from '../pages/loadingPages/HomeLoading';
 import { AuthInProgress, ButtonAutentification } from '../pages/loadingPages/Authentification';
 import { getPlayerDataApi } from './Profil/FetchApi';
 import { client } from '../data/Client';
-import { io } from 'socket.io-client';
+import socket from '../socket.ts';
 import UpdateInfo from './Profil/ChangeInfo';
 import { UserInfosContext, useUserInfos } from './ContextBoard';
 import TwoFA from './Profil/TwoFA';
@@ -86,9 +86,8 @@ export function SetConnection({ children }: { children: ReactNode }): ReactEleme
 			if (userInfo.pseudo) {
 				console.log("ludi regarde t connecter");
 				client.token = jwtToken;
-				client.socket = io('http://localhost:3000', {
-					query: { token: jwtToken },
-				});
+				socket.io.opts.query = { token: jwtToken };
+				client.socket = socket;
 				setIsUser(true);
 			}
 			else
@@ -97,8 +96,9 @@ export function SetConnection({ children }: { children: ReactNode }): ReactEleme
 	}, [userInfo]);
 
 	useEffect(() => {
-		if (jwtToken)
+		if (jwtToken) {
 			setIsConnected(true);
+		}
 		else
 			setIsConnected(false);
 	}, [jwtToken]);

@@ -55,7 +55,7 @@
 	grid-area: 2 / 1 / span 1 / span 1;
 }
 
-.newMain {
+.newMain, .MainChat, .MainFriends, .MainNotif {
 	grid-area: 2 / 2 / span 2 / span 1;
 }
 

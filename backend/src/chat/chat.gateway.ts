@@ -14,7 +14,7 @@ import { OnEvent } from '@nestjs/event-emitter';
 import { Friend, Message, User } from '@prisma/client';
 import { ChannelSocketDto, MessageSocketDto } from 'src/dto/chat.dto';
 import { MessageService } from 'src/message/message.service';
-
+import { EventEmitter2 } from '@nestjs/event-emitter';
 @UseGuards()
 @WebSocketGateway({
   cors: {
@@ -27,12 +27,13 @@ export class ChatGateway
   server: Server;
 
   constructor(
-    public readonly sessionManager: GatewaySessionManager, // Injectez votre GatewaySessionManager
+    public readonly sessionManager: GatewaySessionManager,   private readonly eventEmitter: EventEmitter2, // Injectez votre GatewaySessionManager
     private readonly messageService: MessageService
   ) { }
 
   async handleConnection(client: Socket) {
-    const token = client.handshake.query.token as string;
+    console.log("QUERY = ", client.handshake.query);
+    const token = client.handshake.query.jwt_token as string;
     console.log('Client connected CHAT:', token);
 
     // Utilisez votre sessionManager pour associer le socket à l'utilisateur
@@ -40,11 +41,10 @@ export class ChatGateway
   }
 
   async handleDisconnect(client: Socket) {
-    console.log('Client disconnected CHAT:', client.id);
-
     // Utilisez votre sessionManager pour supprimer le socket de l'utilisateur lorsqu'il se déconnecte
     const token = client.handshake.query.token as string;
-    // this.sessionManager.removeUserSocket(token);
+    console.log('Client disconnected CHAT:', token);
+    this.sessionManager.removeUserSocket(token);
   }
 
   @SubscribeMessage('message')

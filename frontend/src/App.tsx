@@ -10,7 +10,7 @@ import { ChatBoxContext } from './components/ContextBoard';
 import { GlobalStyle } from './styles/HomeStyles';
 import AnimatedPage from './components/AnimatedPage';
 import { UserInfosContext } from './components/ContextBoard';
-import Test from './pages/Test';
+//import Test from './pages/Test';
 import Chat from './pages/Chat';
 import { Connection } from './components/Connection';
 import { ChakraProvider } from '@chakra-ui/react'
@@ -37,7 +37,7 @@ function App() {
 	return (
 		<ChakraProvider>
 			<GlobalStyle />
-			{/* <Connection> */}
+			<Connection>
 				<ChatBoxContext.Provider value={{ isChatBoxOpen, setIsChatBoxOpen }}>
 					<AnimatePresence mode="wait">
 						<Routes location={location} key={location.pathname}>
@@ -50,9 +50,9 @@ function App() {
 							<Route path="/game" element={
 								<Game />
 							} />
-							<Route path="/test" element={
+							{/*<Route path="/test" element={
 								<Test />
-							} />
+							} />*/}
 							<Route path="/profile" element={
 								<AnimatedPage endColor="#71ca71">
 									<Profil />
@@ -64,7 +64,7 @@ function App() {
 						</Routes>
 					</AnimatePresence>
 				</ChatBoxContext.Provider>
-			{/* </Connection> */}
+			</Connection>
 			<NewChatBox />
 		</ChakraProvider>
 	)

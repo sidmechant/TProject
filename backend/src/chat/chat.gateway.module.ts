@@ -30,6 +30,7 @@ import { ChannelService } from './chat.service';
 import { GatewaySessionManager } from './chat.session'; // Importez la classe qui implémente IGatewaySessionManager
 import { FriendsModule } from 'src/friends/friends.module';
 import { FriendsService } from 'src/friends/friends.service';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Module({
   imports: [FriendsModule],
@@ -39,7 +40,8 @@ import { FriendsService } from 'src/friends/friends.service';
     ChannelService,
     FriendsService,
     // FriendRequestsEvents,
-    GatewaySessionManager, // Assurez-vous que GatewaySessionManager est inclus ici
+    GatewaySessionManager,
+    EventEmitter2, // Assurez-vous que GatewaySessionManager est inclus ici
   ],
 })
 export class ChatGatewayModule {}

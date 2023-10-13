@@ -35,6 +35,34 @@ export class FriendsService {
     return friends;
   }
 
+  async getAcceptedFriends(userId: number) {
+    const requestedFriends = await this.prisma.friend.findMany({
+        where: {
+            userId: userId,
+            status: "accepted"
+        },
+        select: {
+            friend: true
+        }
+    });
+
+    const receivedFriends = await this.prisma.friend.findMany({
+        where: {
+            friendId: userId,
+            status: "accepted"
+        },
+        select: {
+            user: true
+        }
+    });
+  
+    const friends = [
+        ...requestedFriends.map(f => f.friend),
+        ...receivedFriends.map(f => f.user)
+    ];
+  
+    return friends;
+}
 
   async sendFriendRequest(senderId: number, receiverPseudo: string): Promise<Friend> {
     const receiverPlayer = await this.prisma.player.findFirst({ where: { pseudo: receiverPseudo } });
@@ -123,6 +151,23 @@ export class FriendsService {
     }
   }
 
+
+  async getBlockedUsers(userId: number): Promise<User[]> {
+    // Récupération des utilisateurs bloqués
+    const blockedRelations = await this.prisma.friend.findMany({
+      where: {
+        userId: userId,
+        status: 'blocked'
+      },
+      select: {
+        friend: true
+      }
+    });
+
+    // Renvoyer uniquement les données des utilisateurs bloqués
+    return blockedRelations.map(relation => relation.friend);
+  }
+
   async getUsersOnline(): Promise<User[]> {
     return this.prisma.user.findMany({
       where: {
@@ -138,6 +183,21 @@ export class FriendsService {
       data: { status: status }
     });
   }
+
+  async getPendingFriends(userId: number) {
+    const pendingRequests = await this.prisma.friend.findMany({
+        where: {
+            userId: userId,
+            status: "requested"
+        },
+        select: {
+            friend: true
+        }
+    });
+
+    return pendingRequests.map(f => f.friend);
+}
+
 
   async getFriends(userId: number): Promise<Friend[]> {
     const user = await this.prisma.user.findUnique({

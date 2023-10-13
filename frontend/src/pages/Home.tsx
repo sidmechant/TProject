@@ -93,6 +93,10 @@ const Home = () => {
   }
 
   return (
+    <ChatBox />
+  )
+  
+  return (
 
     <MeshProvider>
       <RotationProvider>
