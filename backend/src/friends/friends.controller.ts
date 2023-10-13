@@ -132,32 +132,45 @@ async searchPseudo(@Req() req, @Query('pseudo') pseudoToSearch: string): Promise
 
 
 
-
   @UseGuards(JwtAuthGuard)
   @Get('friends-online')
   async getFriendsOnline(@Req() req): Promise<User[]> {
     try {
-      // Récupérez l'ID de l'utilisateur à partir de votre JwtAuthGuard, car il le décode
-      const id = req.userId; // Assurez-vous que req est correctement défini
-      const userId = Number(req.userId);
-      return await this.friendsService.getFriendsOnline(userId);
+      const userId = Number(req.user.id); // Si JwtAuthGuard attache les détails de l'utilisateur à `req.user`
+  
+      const friendsOnline = await this.friendsService.getFriendsOnline(userId);
+  
+      // Émettez l'événement pour notifier d'autres parties du système que l'utilisateur a demandé la liste des amis en ligne
+      this.eventEmitter.emit('friends.online.list', { userId });
+  
+      return friendsOnline; // Renvoyer la liste des amis en ligne à l'appelant
     } catch (error) {
-      // Gérez les erreurs ici, par exemple, en lançant une exception ou en journalisant.
-      throw new HttpException("Une erreur s'est produite lors de la récupération des amis en ligne.",  HttpStatus.BAD_REQUEST);
+      throw new HttpException("Une erreur s'est produite lors de la récupération des amis en ligne.", HttpStatus.BAD_REQUEST);
     }
   }
-
+  
 
 
   @Get('pending')
-  @UseGuards(JwtAuthGuard)  // Supprimez cette ligne si vous n'utilisez pas de garde d'authentification
+  @UseGuards(JwtAuthGuard)  // Gardez cette ligne si vous utilisez un garde d'authentification
   async getPendingFriends(@Req() req) {
-    const id = req.userId; // Assurez-vous que req est correctement défini
-    const userId = Number(req.userId);// 
+    try {
+      const userId = Number(req.userId); // Convertir l'ID de l'utilisateur en nombre
+  
+      // Récupérer la liste des amis en attente
       const pendingFriends = await this.friendsService.getPendingFriends(userId);
+  
+      // Émettre un événement pour informer d'autres parties du système que l'utilisateur a demandé la liste des amis en attente
+      this.eventEmitter.emit('friends.pending.list', { userId });
+  
+      // Retourner la liste des amis en attente à l'appelant
       return pendingFriends;
+    } catch (error) {
+      // En cas d'erreur, lancez une exception avec un message approprié
+      throw new HttpException("Une erreur s'est produite lors de la récupération des amis en attente.", HttpStatus.BAD_REQUEST);
+    }
   }
-
+  
   @Get('accepted')
   @UseGuards(JwtAuthGuard)  // Supprimez cette ligne si vous n'utilisez pas de garde d'authentification
   async getAcceptedFriends(@Req() req) {
