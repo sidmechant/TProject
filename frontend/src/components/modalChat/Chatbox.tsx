@@ -13,6 +13,8 @@ import NavbarFriends from './NavbarFriends.tsx';
 import NavbarNotif from './NavbarNotif.tsx';
 import * as API from '../Profil/FetchApi.tsx';
 import MainChat from './MainChat.tsx';
+import MainFriends from './MainFriends.tsx';
+import MainNotif from './MainNotif.tsx';
 
 interface User {
     id: number;
@@ -97,7 +99,8 @@ function ChatMain(myUser: any) {
 				</div>
 				{menu === 1 ? <NavbarChat /> : (menu === 2 ? <NavbarFriends /> : <NavbarNotif />)}
 			</div>
-			<MainChat />
+            {menu === 1 ? <MainChat /> : (menu === 2 ? <MainFriends user={user}/> : <MainNotif />)}
+
 		</>
 	)
 }
@@ -131,6 +134,8 @@ export default function NewChatBox() {
             const fetchedUser = await API.getPlayerDataApi();
 
             setMyUser(fetchedUser.player);
+            console.log("chatbox user: ", fetchedUser.player);
+
         };
         GetUserData();
 

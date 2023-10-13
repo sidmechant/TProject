@@ -74,35 +74,6 @@ async getPhotoUrl(@Req() req): Promise<{ urlPhotoProfile: string; }> {
     }
 }
 
-  @UseGuards(JwtAuthGuard)
-  @Get('/:pseudo')
-  async getUserByPseudo(@Param() params: PseudoDto): Promise<Player> {
-    try {
-      // Validez le pseudo (DTO)
-      const errors = await validate(params);
-      if (errors.length > 0) {
-        const errorMessage = errors.map(error => Object.values(error.constraints)).join(', ');
-        throw new BadRequestException(errorMessage);
-      }
-  
-      const player = await this.playersService.getPlayerByPseudo(params.pseudo);
-      
-      if (!player) {
-        throw new NotFoundException(`Joueur avec le pseudo ${params.pseudo} introuvable`);
-      }
-      
-      return player;
-    } catch (error) {
-      if (error instanceof HttpException) {
-        throw error;
-      }
-      // Si vous souhaitez toujours renvoyer un code d'état générique 500 pour d'autres erreurs, 
-      // vous pouvez le garder. Sinon, ajustez-le selon vos besoins.
-      throw new HttpException("Une erreur inattendue s'est produite.", HttpStatus.BAD_REQUEST);
-    }
-  }
-  
-
   /**
    * Met à jour l'URL de la photo de profil d'un joueur.
    * @param req - La requête HTTP contenant l'ID du joueur dans req.userId.
@@ -193,6 +164,7 @@ async getPhotoUrl(@Req() req): Promise<{ urlPhotoProfile: string; }> {
   @UseGuards(JwtAuthGuard)
   @Get('all')
   async getAllPlayers(): Promise<Player[]> {
+    console.log("getAllPlayers")
     try {
       const players = await this.playersService.getAllPlayers();
       return players;
@@ -217,8 +189,34 @@ async getPhotoUrl(@Req() req): Promise<{ urlPhotoProfile: string; }> {
       throw new HttpException("Une erreur s'est produite lors de la suppression du joueur.", HttpStatus.BAD_REQUEST);
     }
   }
-
-
+  
+  @UseGuards(JwtAuthGuard)
+  @Get('/:pseudo')
+  async getUserByPseudo(@Param() params: PseudoDto): Promise<Player> {
+    try {
+      // Validez le pseudo (DTO)
+      const errors = await validate(params);
+      if (errors.length > 0) {
+        const errorMessage = errors.map(error => Object.values(error.constraints)).join(', ');
+        throw new BadRequestException(errorMessage);
+      }
+  
+      const player = await this.playersService.getPlayerByPseudo(params.pseudo);
+      
+      if (!player) {
+        throw new NotFoundException(`Joueur avec le pseudo ${params.pseudo} introuvable`);
+      }
+      
+      return player;
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      // Si vous souhaitez toujours renvoyer un code d'état générique 500 pour d'autres erreurs, 
+      // vous pouvez le garder. Sinon, ajustez-le selon vos besoins.
+      throw new HttpException("Une erreur inattendue s'est produite.", HttpStatus.BAD_REQUEST);
+    }
+  }
 
 
   ///////////////////////////FRIEND FRIEND FRIEN/////////////////////////////////////////////////////////////////////////////////////////

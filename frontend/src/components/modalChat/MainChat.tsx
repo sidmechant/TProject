@@ -27,7 +27,7 @@ export default function MainChat() {
 
     return (
         <>
-        <div className="bg-slate-500/30 newMain"></div>
+        <div className="bg-slate-500/30 MainChat"></div>
 			<div className="bg-slate-500/70 newMessage flex justify-center items-center">
 				<Input
 				className='mx-5'
