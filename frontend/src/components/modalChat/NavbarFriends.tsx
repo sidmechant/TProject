@@ -1,7 +1,8 @@
 import './Chatbox.css';
-import * as API from '../Profil/FetchApi.tsx';
+import * as oldAPI from '../Profil/FetchApi.tsx';
 import { useEffect, useState } from 'react';
 import './interface.ts';
+import * as API from './FetchAPiChat.tsx';
 
 export default function NavbarFriends() {
 
@@ -11,9 +12,19 @@ export default function NavbarFriends() {
     const [ selectedUser, setSelectedUser ] = useState<User | null>(null);
 
     useEffect(() => {
+        const getFriends = async () => {
+            const AllFriends = await API.getPendingFriends();
+            console.log("LIST FRIENDS: ", AllFriends);
+            setFriends(AllFriends);
+        };
+
+        getFriends();
+    }, []);
+
+    useEffect(() => {
 
         const getUsers = async () => {
-            const AllUsers = await API.fetcher('players/all');
+            const AllUsers = await oldAPI.fetcher('players/all');
             console.log("ALL users: ", AllUsers)
             setUsers(AllUsers);
         }
@@ -35,15 +46,13 @@ export default function NavbarFriends() {
 	return (
 		<div className='newNavMain bg-black/10 grid overflow-auto'>
             {users && (users.map((currUser: User, index: string) => (
-                <button id={index}
+                <button key={index}
                 onClick={() => selectUser(currUser)}
                 className={selectedUser === currUser ? selectedUserClass : userClass}
                 >
                     {currUser.pseudo}
                 </button>
             )))}
-            <div className='h-10 w-[96%] mx-1 bg-white/20 border border-1 my-7 flex items-center 
-                justify-center text-white'></div>
 		</div>
 	)
 }

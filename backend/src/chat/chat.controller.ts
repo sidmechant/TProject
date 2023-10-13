@@ -15,10 +15,11 @@ import {
     HttpStatus,
     Param } from '@nestjs/common';
   import { ChannelService } from './chat.service'
-  import { CreateChannelDto, UpdateChannelDto, SearchChannelByNameDto, UpdateChannelByNameDto } from './chat.dto';
+  import { UpdateChannelDto, SearchChannelByNameDto, UpdateChannelByNameDto } from './chat.dto';
   import { PrismaClient, Channel } from '@prisma/client';
   import { JwtAuthGuard } from  '../auth/jwt.guard';
   import { CrudService } from 'src/auth/forty-twoapi/crud.service';
+import { CreateChannelDto } from 'src/dto/channel.dto';
   
   @Controller('channels')
   export class ChannelController {

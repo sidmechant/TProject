@@ -135,7 +135,11 @@ const acceptFriendRequest = async (requesterId : any) => {
     } catch (error) {
         handleAxiosError(error);
     }
+<<<<<<< HEAD:frontend/src/components/ChatBox/FetchAPiChat.tsx
 }
+=======
+  }
+>>>>>>> 0dee10f3578b82cb4d9bdbfb3c8445bc1c840df6:frontend/src/components/modalChat/FetchAPiChat.tsx
   
   export {
     sendFriendRequest,

@@ -4,7 +4,8 @@ import { Input } from "@chakra-ui/react";
 import { useState, useEffect } from 'react';
 import { Avatar } from '@chakra-ui/react'
 import { BiSolidLeftArrow, BiSolidRightArrow } from 'react-icons/bi';
-import * as API from '../Profil/FetchApi';
+import * as oldAPI from '../Profil/FetchApi';
+import * as API from './FetchAPiChat';
 
 export default function MainFriends(user: any) {
 
@@ -13,12 +14,17 @@ export default function MainFriends(user: any) {
 
     const handleCreateFriendship = async () => {
 
+        const targetUser = users[userIdx];
+
+        const res = await API.sendFriendRequest(targetUser.pseudo);
+
+        console.log(res);
     };
 
     useEffect(() => {
 
         const getUsers = async () => {
-            const AllUsers = await API.fetcher('players/all');
+            const AllUsers = await oldAPI.fetcher('players/all');
             console.log("ALL users: ", AllUsers)
             setUsers(AllUsers);
         }
@@ -57,7 +63,7 @@ export default function MainFriends(user: any) {
                 <button
                     onClick={() => handleCreateFriendship()}
                     className='h-10 w-[40%] bg-white/20 border border-1 my-5 flex items-center 
-                    justify-center break-all text-ellipsis overflow-hidden text-white'
+                    justify-center break-all text-ellipsis overflow-hidden text-white hover:bg-white/10'
                 >
                     Add friend
                 </button>
