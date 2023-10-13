@@ -46,18 +46,6 @@ export class FriendsController {
   }
   
 
-  // @UseGuards(JwtAuthGuard)
-  // @Post('/friend-request')
-  // async sendFriendRequest(@Req() req, @Body() dto: { receiverPseudo: string }): Promise<any> {
-  //   try {
-  //     const senderId = Number(req.userId);
-  //     const { receiverPseudo } = dto;
-  //     return await this.friendsService.sendFriendRequest(senderId, receiverPseudo);
-  //   } catch (error) {
-  //     if (error instanceof HttpException) throw error;
-  //     throw new HttpException("Une erreur s'est produite lors de l'envoi de la demande d'ami.", HttpStatus.BAD_REQUEST);
-  //   }
-  // }
 
   @UseGuards(JwtAuthGuard)
   @Patch('/friend-request/accept')
