@@ -1,12 +1,7 @@
 
 import { IsNotEmpty, IsInt, IsString, IsUrl, Length, MaxLength } from 'class-validator';
 
-export class CreateChannelDto {
-    name: string;
-    type: 'public' | 'private' | 'protected';
-    ownerId: number;
-    password?: string;
-}
+
 
 export class UpdateChannelDto {
     newname: string;

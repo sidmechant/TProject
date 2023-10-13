@@ -1,12 +1,10 @@
-import { Injectable, ConflictException, BadRequestException, NotFoundException, HttpException, HttpStatus, Logger } from '@nestjs/common';
+import { Injectable, ConflictException, BadRequestException, NotFoundException, HttpException, HttpStatus } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { CreateChannelDto, UpdateChannelDto, SearchChannelByNameDto, UpdateChannelByNameDto } from '../dto/channel.dto';
 import { PrismaService } from '../../prisma/prisma.service'
 import { PrismaClient, Channel } from '@prisma/client'
 import { channel } from 'diagnostics_channel';
 import { randomBytes, createCipheriv, createDecipheriv, scrypt } from 'crypto';
-import { GetChannelDto } from 'src/dto/channel.dto';
-import { error } from 'console';
 
 @Injectable()
 export class ChannelService {
@@ -15,7 +13,6 @@ export class ChannelService {
   private readonly IV_LENGTH = 16;
   private readonly PASSWORD = process.env.PASSWORD_2FA// Choisissez un mot de passe fort
   private key: Buffer;
-  private logger: Logger = new Logger('ChannelService');
 
   constructor(private readonly prisma: PrismaService) {
     scrypt(this.PASSWORD, 'salt', this.KEY_LENGTH, (err, derivedKey) => {
@@ -42,6 +39,24 @@ export class ChannelService {
     return Buffer.concat(decryptedBuffers).toString('utf8'); // Concatène et convertit en string
   }
 
+  /**
+  * Hashes a plain-text password.
+  *
+  * This function generates a cryptographic salt and then uses that salt
+  * to hash the given plain-text password. The bcrypt hashing algorithm
+  * is used due to its resistance to brute force and rainbow table attacks.
+  *
+  * @private
+  * @async
+  * @function
+  * @param {string} password - The plain-text password to hash.
+  * @returns {Promise<string>} - Returns a promise that resolves to the hashed password.
+  * @throws {Error} - Throws an error if there's an issue during hashing.
+  *
+  * @example
+  * const hashed = await hashPassword("myPlainPassword");
+  * console.log(hashed);  // '$2b$10$...<rest of the hash>'
+  */
   private async hashPassword(password: string): Promise<string> {
     const saltRounds: number = 10;
     try {
@@ -54,6 +69,26 @@ export class ChannelService {
     }
   }
 
+  /**
+  * Compares a plain-text password with a hashed password.
+  *
+  * This function is used to verify if a given plain-text password
+  * matches a previously hashed password. It's essential to use this
+  * method instead of a direct string comparison to ensure the security
+  * of the hashed password.
+  *
+  * @private
+  * @async
+  * @function
+  * @param {string} inputPassword - The plain-text password to verify.
+  * @param {string} hashedPassword - The hashed password to compare against.
+  * @returns {Promise<boolean>} - Returns a promise that resolves to `true` if the passwords match, otherwise `false`.
+  * @throws {Error} - Throws an error if there's an issue during comparison.
+  *
+  * @example
+  * const isValid = await checkPassword("myPlainPassword", '$2b$10$...<rest of the hash>');
+  * console.log(isValid);  // true or false
+  */
   private async checkPassword(inputPassword: string, hashedPassword: string): Promise<boolean> {
     try {
       return await bcrypt.compare(inputPassword, hashedPassword);
@@ -63,40 +98,84 @@ export class ChannelService {
     }
   }
 
-  async createChannel(userId: number, createChannelDto: CreateChannelDto): Promise<Channel> {
-    const { name, type, password } = createChannelDto;
-
-    this.logger.debug("je commence ici");
-    const id = Number(userId);
-    const existingChannel = await this.findChannelByName(name);
-    this.logger.log(`Je suis dans createChannel ${name} ---- ${type} ---- ${password}`);
-    if (existingChannel) {
-      throw new HttpException('Channel already exists', HttpStatus.CONFLICT);
-    }
-
-    if (type === 'protected' && !password) {
-      throw new HttpException('Password not found', HttpStatus.BAD_REQUEST);
-    }
-
-    this.logger.debug("ici");
-    const hashedPassword: string = type === 'protected' ? await this.encrypt(password) : null;
-
-    const channel: Channel = await this.prisma.channel.create({
-      data: {
-        name,
-        type,
-        ownerId: id,
-        password: hashedPassword
-      }
+  async findChannelByname(name: string, userId: number) {
+    const channel = await this.prisma.channel.findFirst({
+      where: {
+        ownerId: userId,
+        name: name,
+      },
     });
-    if (channel) {
-      this.logger.debug("Je suis enfin ici");
-      return channel;
-    }
-    this.logger.debug("je suis surement la");
-    throw new HttpException("Channel couldn't be created", HttpStatus.NOT_IMPLEMENTED);
+    if (channel) return channel;
+    throw new HttpException('cannal exist', HttpStatus.CONFLICT);
   }
 
+  /*
+    Il va falloir envoyer l'ornerId par le bias du jwtguard 
+  */
+  /**
+  * Crée un nouveau canal.
+  * 
+  * @param createChannelDto - DTO contenant les informations pour créer un nouveau canal.
+  * @returns {Promise<Channel>} - Le canal nouvellement créé.
+  * @throws {ConflictException} - Lancée si le nom du canal existe déjà.
+  * @throws {BadRequestException} - Lancée si un canal privé est créé sans mot de passe.
+  */
+  async createChannel(createChannelDto: CreateChannelDto): Promise<Channel> {
+    try {
+      const { name, type, ownerId, password } = createChannelDto;
+
+      const id = Number(ownerId);
+      const existingChannel: Channel = await this.findChannelByname(name, id);;
+      if (existingChannel)
+        throw new HttpException('cannal exist', HttpStatus.CONFLICT);
+
+      if (type === 'protected' && !password)
+        throw new HttpException('password not found', HttpStatus.BAD_REQUEST);
+
+      const hashedPassword: string = type === 'protected' ? await this.encrypt(password) : null;
+
+      const channel: Channel = await this.prisma.channel.create({
+        data: {
+          name,
+          type,
+          ownerId: id,
+          password: hashedPassword
+        }
+      });
+      if (channel) return channel;
+      throw new HttpException("cannal don't create", HttpStatus.NOT_IMPLEMENTED)
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  /**
+  * Cherche un canal par son nom.
+  * 
+  * @param {string} name - Le nom du canal.
+  * @returns {Promise<Channel | null>} - Le canal trouvé ou null.
+  */
+  async findChannelByName(name: string): Promise<Channel | null> {
+    try {
+      //console.log("je suis dans findChannelByName");
+      const channel: Channel = await this.prisma.channel.findUnique({
+        where: {
+          name: name,
+        },
+      });
+      if (channel) return channel;
+      throw new HttpException(`Channel ${name} not found`, HttpStatus.NOT_FOUND);;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  /**
+  * Récupère la liste de tous les canaux.
+  *
+  * @returns {Promise<Channel[]>} La liste des canaux.
+  * @throws {NotFoundException} Si aucun canal n'est trouvé.
+  */
   public async findAllChannels(): Promise<Channel[]> {
     try {
       //console.log("je suis dans findAllChannels");
@@ -104,6 +183,26 @@ export class ChannelService {
       if (channels.length > 0)
         return channels.map(channel => ({ ...channel, password: null }));
       throw new HttpException(`Channels not found`, HttpStatus.NOT_FOUND);;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  /**
+  * Récupère tous les canaux associés à utilisateur.
+  * @param userId L'ID de l'utilisateur.
+  * @returns { Promise<Channel[]> } La liste des canaux associés à l'utilisateur.
+  * @throws { NotFoundException } Si aucun canal n'est trouvé.
+  */
+  async findChannelsByUserId(userId: number): Promise<Channel[]> {
+    try {
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+        include: { ownedChannels: true }
+      });
+      if (!user || user.ownedChannels.length === 0)
+        throw new HttpException(`Channels not found`, HttpStatus.NOT_FOUND);;
+    return user.ownedChannels;
     } catch (error) {
       throw error;
     }
@@ -185,7 +284,7 @@ export class ChannelService {
   */
   async updateChannelByUserId(userId: number, data: UpdateChannelDto): Promise<Channel> {
     try {
-      const channel = await this.findChannelByName(data.name);
+      const channel = await this.findChannelByname(data.name, userId);
       const newChannel: any = this.updateChannel(channel, data);
       return this.prisma.channel.update({
         where: { id: channel.id },
@@ -198,43 +297,46 @@ export class ChannelService {
     }
   }
 
+  /**
+  * Supprime un canal en fonction de son nom et de l'ID du propriétaire.
+  *
+  * @param {string} name - Le nom du canal à supprimer.
+  * @param {number} userId - L'ID de l'utilisateur propriétaire du canal.
+  *
+  * @returns {Promise<void>} - Ne retourne rien si la suppression est réussie.
+  *
+  * @throws {NotFoundException} - Si aucun canal n'est trouvé avec le nom pour le propriétaire spécifié.
+  */
   async deleteChannelByNameAndOwnerId(name: string, userId: number): Promise<void> {
-    try {
-      const channel = await this.prisma.channel.findFirst({
-        where: { name: name, ownerId: userId },
-      });
+    const channel = await this.prisma.channel.findFirst({
+      where: {
+        name: name,
+        ownerId: userId,
+      },
+    });
 
-      if (!channel)
-        throw new NotFoundException(`Aucun canal trouvé avec le nom ${name} pour l'utilisateur avec l'ID ${userId}`);
-
-      await this.prisma.channel.delete({
-        where: { id: channel.id },
-      });
-    } catch (error) {
-      throw error;
+    if (!channel) {
+      throw new NotFoundException(`Aucun canal trouvé avec le nom ${name} pour l'utilisateur avec l'ID ${userId}`);
     }
+
+    await this.prisma.channel.delete({
+      where: { id: channel.id },
+    });
   }
 
-  async deleteChannelByName(name: string): Promise<void> {
-    try {
-      const channel = await this.prisma.channel.findFirst({
-        where: { name: name },
-      });
 
-      if (!channel)
-        throw new NotFoundException(`Aucun canal trouvé avec le nom ${name}`);
-
-      await this.prisma.channel.delete({
-        where: { id: channel.id },
-      });
-    } catch (error) {
-      throw error;
-    }
-  }
-
+  /**
+  * Supprime tous les canaux de l'utilisateur en fonction de son ID.
+  *
+  * @param {number} userId - L'ID de l'utilisateur dont les canaux doivent être supprimés.
+  *
+  * @throws {UnauthorizedException} - Si l'utilisateur n'est pas autorisé à supprimer les canaux.
+  */
   async deleteAllChannelsByOwnerId(userId: number): Promise<void> {
     const channels = await this.prisma.channel.findMany({
-      where: { ownerId: userId },
+      where: {
+        ownerId: userId,
+      },
     });
 
     if (!channels || channels.length === 0) {
@@ -245,82 +347,6 @@ export class ChannelService {
       await this.prisma.channel.delete({
         where: { id: channel.id },
       });
-    }
-  }
-
-  async deleteChannelByChannelIdOwnerId(userId: number, channelId: string): Promise<void> {
-    try {
-      const channel = await this.prisma.channel.findFirst({
-        where: { ownerId: userId, id: channelId },
-      });
-
-      if (!channel)
-        throw new NotFoundException('Aucun canal trouvé pour cet utilisateur.');
-
-      await this.prisma.channel.delete({
-        where: { id: channel.id },
-      });
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  async findChannelByChannelIdOwnerId(channelId: string, ownerId: string) {
-    try {
-      const id = Number(ownerId);
-      const channel = await this.prisma.channel.findFirst({
-        where: { id: channelId, ownerId: id },
-      });
-
-      if (!channel)
-        throw new NotFoundException('Canal non trouvé');
-      if (channel.ownerId !== Number(ownerId))
-        throw new NotFoundException('Canal non autorisé pour cet utilisateur');
-      return channel;
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  async findAllChannelByOwnerId(channelId: string, ownerId: string) {
-    try {
-      const id = Number(ownerId);
-      const channels = await this.prisma.channel.findMany({
-        where: { ownerId: id },
-      });
-
-      if (channels.length > 0)
-        return channels.map(channel => ({ ...channel, password: null }));
-      throw new HttpException(`Channel with ownerId: ${ownerId} not found`, HttpStatus.NOT_FOUND);;
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  async findChannelByName(name: string): Promise<Channel | null> {
-    try {
-      const channel: Channel = await this.prisma.channel.findUnique({
-        where: {
-          name: name,
-        },
-      });
-      if (channel) return channel;
-      throw new HttpException(`Channel ${name} not found`, HttpStatus.NOT_FOUND);;
-    } catch (error) {
-      throw error;
-    }
-  }
-  
-  async findChannelByNameOwnerId(name: string, ownerId: string): Promise<Channel | null> {
-    try {
-      const id = Number(ownerId);
-      const channel: Channel = await this.prisma.channel.findUnique({
-        where: { name: name, ownerId: id },
-      });
-      if (channel) return channel;
-      throw new HttpException(`Channel ${name} not found`, HttpStatus.NOT_FOUND);;
-    } catch (error) {
-      throw error;
     }
   }
 }
