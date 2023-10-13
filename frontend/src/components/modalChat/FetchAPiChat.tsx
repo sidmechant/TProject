@@ -106,6 +106,7 @@ const acceptFriendRequest = async (requesterId : any) => {
     } catch (error) {
         handleAxiosError(error);
     }
+  }
 
 
   const getPendingFriends = async () => {
@@ -134,8 +135,7 @@ const acceptFriendRequest = async (requesterId : any) => {
     } catch (error) {
         handleAxiosError(error);
     }
-}
-};
+  }
   
   export {
     sendFriendRequest,
@@ -148,5 +148,5 @@ const acceptFriendRequest = async (requesterId : any) => {
     getDataByPseudoApi,
     getAcceptedFriends,
     getPendingFriends,
-    getBlockedUSers
+    getBlockedUsers,
   };
