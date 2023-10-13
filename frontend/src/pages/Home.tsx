@@ -61,6 +61,33 @@ const items = [
 const ChargingTime = 10;
 const intervalTime = 10;
 
+function Sid() {
+
+  const button1 = () => {
+      //list friendship
+  };
+
+  const button2 = () => {
+
+  };
+
+  return (
+    <div className='bg-indigo-500 fixed top-0 r-0 w-[50%] h-[50%] flex flex-row justify-evenly items-center'>
+      <button
+      onClick={() => button1()}
+      className='w-36 h-36 bg-white text-black'>
+        button 1
+      </button>
+
+      <button
+      onClick={() => button1()}
+      className='w-36 h-36 bg-white text-black'>
+        button 1
+      </button>
+    </div>
+  )
+}
+
 const Home = () => {
 
   const [isLoading, setIsLoading] = useState(true);
@@ -93,7 +120,10 @@ const Home = () => {
   }
 
   return (
+    <>
     <ChatBox />
+    <Sid />
+    </>
   )
   
   return (

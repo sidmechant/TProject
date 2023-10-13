@@ -187,17 +187,17 @@ export class FriendsService {
   async getPendingFriends(userId: number) {
     const pendingRequests = await this.prisma.friend.findMany({
         where: {
-            userId: userId,
+            friendId: userId, // Ligne modifiée
             status: "requested"
         },
         select: {
-            friend: true
+            user: true // Récupère l'utilisateur qui a fait la demande
         }
     });
-
-    return pendingRequests.map(f => f.friend);
-}
-
+  
+    return pendingRequests.map(f => f.user); // Retourne les utilisateurs qui ont fait les demandes
+  }
+  
 
   async getFriends(userId: number): Promise<Friend[]> {
     const user = await this.prisma.user.findUnique({

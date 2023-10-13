@@ -27,11 +27,11 @@ export class FriendsController {
       const senderId = Number(req.userId);
       const receiver = await this.playersService.getPlayerByPseudo(dto.receiverPseudo); // Supposons que vous ayez une telle méthode
       if (!receiver) {
-        throw new HttpException("Joueur non trouvé.", HttpStatus.NOT_FOUND);
+        // throw new HttpException("Joueur non trouvé.", HttpStatus.NOT_FOUND);
       }
   
       if (await this.friendsService.isBlockedByUser(senderId, receiver.id)) {
-        throw new HttpException("Vous avez été bloqué par cet utilisateur.", HttpStatus.FORBIDDEN);
+        // throw new HttpException("Vous avez été bloqué par cet utilisateur.", HttpStatus.FORBIDDEN);
       }
   
       const { receiverPseudo } = dto;
@@ -40,8 +40,9 @@ export class FriendsController {
       return friendRequest;
 
     } catch (error) {
-      if (error instanceof HttpException) throw error;
-      throw new HttpException("Une erreur s'est produite lors de l'envoi de la demande d'ami.", HttpStatus.BAD_REQUEST);
+      if (error instanceof HttpException)
+          return ; /*throw error;*/
+      // throw new HttpException("Une erreur s'est produite lors de l'envoi de la demande d'ami.", HttpStatus.BAD_REQUEST);
     }
   }
   
@@ -57,8 +58,9 @@ export class FriendsController {
       this.eventEmitter.emit('friendrequest.accept', friend); // Émettez l'événement ici
       return friend;
     } catch (error) {
-      if (error instanceof HttpException) throw error;
-      throw new HttpException("Une erreur s'est produite lors de l'acceptation de la demande d'ami.", HttpStatus.BAD_REQUEST);
+      if (error instanceof HttpException) /*throw error;*/
+      return ;
+      // throw new HttpException("Une erreur s'est produite lors de l'acceptation de la demande d'ami.", HttpStatus.BAD_REQUEST);
     }
   }
 
@@ -73,8 +75,9 @@ export class FriendsController {
       return friend;
 
     } catch (error) {
-      if (error instanceof HttpException) throw error;
-      throw new HttpException("Une erreur s'est produite lors du refus de la demande d'ami.", HttpStatus.BAD_REQUEST);
+      if (error instanceof HttpException) /*throw error;*/
+      return ;
+      // throw new HttpException("Une erreur s'est produite lors du refus de la demande d'ami.", HttpStatus.BAD_REQUEST);
     }
   }
 
@@ -88,18 +91,20 @@ async searchPseudo(@Req() req, @Query('pseudo') pseudoToSearch: string): Promise
         const playerWithPseudo = await this.playersService.getPlayerByPseudo(pseudoToSearch);
 
         if (!playerWithPseudo) {
-            throw new HttpException('Pseudo non trouvé.', HttpStatus.NOT_FOUND);
+          return ;
+            // throw new HttpException('Pseudo non trouvé.', HttpStatus.NOT_FOUND);
         }
 
         // Vérifiez si l'utilisateur actuel est bloqué par l'utilisateur dont le pseudo a été recherché
         if (await this.friendsService.isBlockedByUser(searcherId, playerWithPseudo.userId)) {
-            throw new HttpException("Vous avez été bloqué par cet utilisateur.", HttpStatus.FORBIDDEN);
+          return ;
+            // throw new HttpException("Vous avez été bloqué par cet utilisateur.", HttpStatus.FORBIDDEN);
         }
 
         return playerWithPseudo;
     } catch (error) {
-        if (error instanceof HttpException) throw error;
-        throw new HttpException("Une erreur inattendue s’est produite.", HttpStatus.BAD_REQUEST);
+        if (error instanceof HttpException) /*throw error;*/
+        return ;
     }
 }
 
@@ -112,8 +117,9 @@ async searchPseudo(@Req() req, @Query('pseudo') pseudoToSearch: string): Promise
       const userId = Number(req.userId);
       return await this.friendsService.getFriends(userId);
     } catch (error) {
-      if (error instanceof HttpException) throw error;
-      throw new HttpException("Une erreur s'est produite lors de la récupération de la liste d'amis.", HttpStatus.BAD_REQUEST);
+      if (error instanceof HttpException) /*throw error;*/
+     // throw new HttpException("Une erreur s'est produite lors de la récupération de la liste d'amis.", HttpStatus.BAD_REQUEST);
+      return ;
     }
   }
 
@@ -126,7 +132,7 @@ async searchPseudo(@Req() req, @Query('pseudo') pseudoToSearch: string): Promise
       return await this.friendsService.getUsersOnline();
     } catch (error) {
       // Gérez les erreurs ici, par exemple, en lançant une exception ou en journalisant.
-      throw new HttpException("Une erreur s'est produite lors de la récupération des utilisateurs en ligne.",  HttpStatus.BAD_REQUEST);
+      return ;
     }
   }
 
@@ -145,7 +151,8 @@ async searchPseudo(@Req() req, @Query('pseudo') pseudoToSearch: string): Promise
   
       return friendsOnline; // Renvoyer la liste des amis en ligne à l'appelant
     } catch (error) {
-      throw new HttpException("Une erreur s'est produite lors de la récupération des amis en ligne.", HttpStatus.BAD_REQUEST);
+      return ;
+   //   throw new HttpException("Une erreur s'est produite lors de la récupération des amis en ligne.", HttpStatus.BAD_REQUEST);
     }
   }
   
@@ -167,7 +174,8 @@ async searchPseudo(@Req() req, @Query('pseudo') pseudoToSearch: string): Promise
       return pendingFriends;
     } catch (error) {
       // En cas d'erreur, lancez une exception avec un message approprié
-      throw new HttpException("Une erreur s'est produite lors de la récupération des amis en attente.", HttpStatus.BAD_REQUEST);
+   //   throw new HttpException("Une erreur s'est produite lors de la récupération des amis en attente.", HttpStatus.BAD_REQUEST);
+      return ;
     }
   }
   
