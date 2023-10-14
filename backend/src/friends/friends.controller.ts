@@ -166,12 +166,12 @@ async getFriendlist(@Req() req) {
     const acceptedFriends = await this.friendsService.getAcceptedFriends(userId);
 
     const allFriends = [
-      ...pendingFriends.map(friend => ({ ...friend, status: 'Pending' })),
-      ...acceptedFriends.map(friend => ({ ...friend, status: 'Accepted' }))
+      ...pendingFriends.map(friend => ({ ...friend, status: 'requested' })),
+      ...acceptedFriends.map(friend => ({ ...friend, status: 'accepted' }))
     ];
 
-    const enrichedFriends = await Promise.all(allFriends.map(async (friend) => {
-      const id = userId;
+    const enrichedFriends = await Promise.all(allFriends.map(async (friend: any) => {
+      const id = friend.id;
       const player = await this.playersService.getPlayerById(id);
       return {
         ...friend,
