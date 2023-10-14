@@ -59,6 +59,14 @@ const acceptFriendRequest = async (requesterId : any) => {
       handleAxiosError(error);
     }
   }
+
+  const deleteFriend = async (requesterId : any) => {
+    try {
+
+    } catch (error) {
+      handleAxiosError(error);
+    }
+  }
   
   const searchPseudo = async (pseudo : any) => {
     try {
@@ -108,7 +116,14 @@ const acceptFriendRequest = async (requesterId : any) => {
     }
   }
 
-
+  const getFriendlist = async () => {
+    try {
+      const response = await axios.get('/friends/friendlist');
+      return response.data;
+    } catch (error) {
+      handleAxiosError(error);
+    }
+  }
   const getPendingFriends = async () => {
       try {
           const response = await axios.get('/friends/pending');
@@ -134,7 +149,69 @@ const acceptFriendRequest = async (requesterId : any) => {
     } catch (error) {
         handleAxiosError(error);
     }
+  }
+
+  export async function createChannel(channelData: any, jwtToken: string | null, sessionToken: string | null) {
+    const ENDPOINT_URL: string = 'channels/created';
+    
+    if (!channelData || !jwtToken)
+        throw new Error("Missing required parameters.");
+
+    const headers: any = {
+        'Authorization': `Bearer ${jwtToken}`,
+        'Content-Type': 'application/json'
+    };
+
+    if (sessionToken)
+        headers['Session-Token'] = sessionToken;
+
+    try {
+      console.log('trying to create channel');
+        const response: any = await axios.post(ENDPOINT_URL, channelData, { headers });
+        console.log(response.data);
+        return response.data;
+    } catch (error) {
+        //console.error("Failed to create channel:", error.response?.data?.message || error.message);
+        //throw new Error(error.response?.data?.message || "Failed to create channel.");
+        handleAxiosError(error);
+    }
 }
+
+  export const joinChannel = async () => {
+    try {
+      const response = await axios.get('/channel/add-member-channel');
+      return response.data;
+    } catch (error) {
+      handleAxiosError(error);
+    }
+  }
+
+  export const getChannels = async () => {
+    try {
+      const response = await axios.get('/channels/allChannel');
+      return response.data;
+    } catch (error) {
+      handleAxiosError(error);
+    }
+  }
+
+  export const getMissingChannels = async (userId: number) => {
+    try {
+      const response = await axios.get(`/channels/missingChannels/${userId}`);
+      return response.data;
+    } catch (error) {
+      handleAxiosError(error);
+    }
+  }
+
+  export const getMyChannels = async (userId: number) => {
+    try {
+      const response = await axios.get(`/channels/${userId}`);
+      return response.data;
+    } catch (error) {
+      handleAxiosError(error);
+    }
+  }
   
   export {
     sendFriendRequest,
@@ -148,4 +225,6 @@ const acceptFriendRequest = async (requesterId : any) => {
     getAcceptedFriends,
     getPendingFriends,
     getBlockedUsers,
+    getFriendlist,
+    deleteFriend,
   };

@@ -1,14 +1,12 @@
 import { IsEmpty, IsString, isEmpty } from "class-validator";
+
 export class CreateChannelDto {
     @IsString()
-    @IsEmpty()
     name: string;
 
     @IsString()
-    @IsEmpty()
     username: string;
 
-    @IsEmpty()
     @IsString()
     type: 'public' | 'private' | 'protected';
 
@@ -33,8 +31,8 @@ export class SearchChannelByNameDto {
 }
 
 export class UpdateChannelByNameDto {
-  currentName: string; // Nom actuel du canal
-  updateData: UpdateChannelDto; // Données pour mettre à jour
+  currentName: string;
+  updateData: UpdateChannelDto;
 }
 
 export class GetChannelDto {
@@ -48,7 +46,7 @@ export class GetChannelDto {
     readonly password?: string;
     
     @IsString()
-    userid: string;
+    userId: string;
 
     @IsString()
     ownerId?: string;

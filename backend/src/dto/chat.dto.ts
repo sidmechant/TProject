@@ -33,18 +33,11 @@ export class MessageSocketDto {
 
 
 export class ChannelSocketDto {
-    @IsObject()
-    @Type(() => UserSocketDto)
     creator: UserSocketDto;
 
-    @IsObject()
-    @Type(() => UserSocketDto)
-    recipient: UserSocketDto;
+    recipient?: UserSocketDto;
 
-    @IsObject()
-    @Type(() => MessageSocketDto)
-    lastMessageSent: MessageSocketDto;
+    lastMessageSent?: MessageSocketDto;
     
-    @IsObject()
     channel: Channel;    
 }

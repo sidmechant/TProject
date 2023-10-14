@@ -1,4 +1,4 @@
-import { Injectable, UseGuards } from '@nestjs/common';
+import { Injectable, Logger, UseGuards } from '@nestjs/common';
 import {
   ConnectedSocket,
   MessageBody,
@@ -15,14 +15,15 @@ import { Friend, Message, User } from '@prisma/client';
 import { ChannelSocketDto, MessageSocketDto } from 'src/dto/chat.dto';
 import { MessageService } from 'src/message/message.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-@UseGuards()
+
 @WebSocketGateway({
   cors: {
     origin: '*',
-  },
+  }, namespace: "chat"
 })
 export class ChatGateway
   implements OnGatewayConnection, OnGatewayDisconnect {
+    private readonly logger: Logger = new Logger('ChatGatway');
   @WebSocketServer()
   server: Server;
 
@@ -81,7 +82,7 @@ export class ChatGateway
   /* *************************** CHANNEL ****************************************** */
   
   @SubscribeMessage('onChannelJoin')
-  async onConversationJoin(@MessageBody() data: ChannelSocketDto, @ConnectedSocket() client: Socket) {  
+  onChannelJoin(@MessageBody() data: ChannelSocketDto, @ConnectedSocket() client: Socket) {  
     client.join(`channel-${data.channel.id}`);
     console.log(client.rooms);
     this.server.to(`channel-${data.channel.id}`).emit('userJoin');
@@ -97,12 +98,28 @@ export class ChatGateway
   }
   
   @OnEvent('channel.create')
-  handleChannelCreateEvent(payload: ChannelSocketDto) {
-    console.log('Inside conversation.create');
-    const recipientSocket = this.sessionManager.getUserSocket(payload.recipient.id);
-    if (recipientSocket) recipientSocket.emit('onChannel', payload);
+  handleChannelCreate(payload: ChannelSocketDto) {
+    /*** debug */
+    this.server.emit("onChannel", payload);
+    this.logger.log('event onChannel');
+    /*** debug */
+
+    //console.log(`Inside conversation.create ${payload.creator.id}`);
+    //const client = this.sessionManager.getUserSocket(payload.creator.id);
+    //if (client) {
+    //  client.join(`channel-${payload.channel.id}`);
+    //  client.emit('onChannel', payload);
+    //  this.server.to('onChannel').emit("onChannel", payload);
+    //  this.logger.log('event onChannel');
+    //}
+    // this.logger.error('event onChannel failed');
   }
-   
+  
+  @OnEvent('channel.create')
+  handletest(payload: any) {
+    this.server.emit("onChannel", payload);
+    this.logger.log('event onChannel');
+  }
   /* ****************************** MESSAGE *************************************** */
 
   @OnEvent('message.create')
@@ -110,8 +127,8 @@ export class ChatGateway
     console.log('Inside message.create');
     const { author, recipient, message } = payload;
 
-    const authorSocket = this.sessionManager.getUserSocket(author.id);
-    const recipientSocket = this.sessionManager.getUserSocket(recipient.id);
+    const authorSocket: any | null = this.sessionManager.getUserSocket(author.id);
+    const recipientSocket: any | null = this.sessionManager.getUserSocket(recipient.id);
 
     if (authorSocket) authorSocket.emit('onMessage', payload);
     if (recipientSocket) recipientSocket.emit('onMessage', payload);
