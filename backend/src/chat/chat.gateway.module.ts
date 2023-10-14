@@ -8,11 +8,8 @@ import { FriendsModule } from 'src/friends/friends.module';
 import { FriendsService } from 'src/friends/friends.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { MessageService } from 'src/message/message.service';
-<<<<<<< HEAD
-=======
 import { ChannelService } from 'src/channel/channel.service';
 import { UsersService } from 'src/users/users.service';
->>>>>>> 8465603811af3a55258c1bde535b07f41848cd0a
 
 @Module({
   imports: [FriendsModule],
