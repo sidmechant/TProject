@@ -49,8 +49,11 @@ export default function NavbarFriends({selectedFriend, setSelectedFriend}: frien
                 </button>
             {friends && (friends.map((friend: any, index: string) => (
                 <button key={index}
-                onClick={() => selectFriend(friend)}
-                className={friend.status === 'Pending' ? pendingUserClass : selectedFriend === friend ? selectedUserClass : userClass}
+                onClick={() => {
+                    selectFriend(friend);
+                    console.log("select friend: ", friend);
+                }}
+                className={friend.status === 'requested' ? pendingUserClass : selectedFriend === friend ? selectedUserClass : userClass}
                 >
                     {friend.player.pseudo}
                 </button>
