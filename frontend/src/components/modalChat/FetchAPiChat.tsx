@@ -14,7 +14,7 @@ class ExtendedError extends Error {
 * @returns {void} - Lance une erreur adaptée.
 */
 const handleAxiosError = (error: any) => {
-  const err = new ExtendedError(); // <-- Modifiez cette ligne
+  const err = new ExtendedError();
   err.statusCode = error.response ? error.response.status : 500;
   err.message = error.message;
 
@@ -118,7 +118,6 @@ const acceptFriendRequest = async (requesterId : any) => {
       }
   }
   
-  // Récupérer la liste des amis acceptés
   const getAcceptedFriends = async () => {
       try {
           const response = await axios.get('/friends/accepted');
