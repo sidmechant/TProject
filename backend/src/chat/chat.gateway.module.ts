@@ -32,10 +32,12 @@ import { FriendsService } from 'src/friends/friends.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { MessageService } from 'src/message/message.service';
 import { ChannelService } from 'src/channel/channel.service';
+import { UsersService } from 'src/users/users.service';
 
 @Module({
   imports: [FriendsModule],
   providers: [
+    UsersService,
     MessageService,
     ChatGateway,
     ChatGatewayService,

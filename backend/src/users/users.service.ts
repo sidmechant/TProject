@@ -6,6 +6,7 @@ import {
 import {PrismaService} from 'prisma/prisma.service'
 import  {Request} from 'express'
 import { UserSocketDto } from 'src/dto/chat.dto';
+import { User } from '@prisma/client';
 
 
 @Injectable()
@@ -55,7 +56,7 @@ export class UsersService {
 
     async getUserSocketDtoByUsername(username: string): Promise<UserSocketDto | null> {
       try {
-        const user = await this.prisma.user.findUnique({
+        const user = await this.prisma.user.findFirst({
           where: { username },
         });
   
@@ -77,6 +78,29 @@ export class UsersService {
     }
 
 
+    async getUserSocketDtoByUserId(userId: string): Promise<UserSocketDto | null> {
+      try {
+        const id = Number(userId);
+        const user = await this.prisma.user.findFirst({
+          where: { id },
+        });
+  
+        if (!user)
+          throw new NotFoundException(`L'utilisateur avec le nom d'utilisateur ${id} n'a pas été trouvé.`);
+  
+        const userSocketDto: UserSocketDto = {
+          id: user.id,
+          username: user.username,
+          displayname: user.displayname,
+          role: user.role,
+          user,
+        };
+  
+        return userSocketDto;
+      } catch (error) {
+        return null;
+      }
+    }
 
 
 /*
@@ -112,6 +136,22 @@ export class UsersService {
           console.error('Error deleting all users:', error);
         }
       }
-      
-    
-    }
+ 
+      async getUserSocketDtoByUser(user: User): Promise<UserSocketDto | null> {
+        try {
+            if (!user)
+              return null;  
+            const userSocketDto: UserSocketDto = {
+              id: user.id,
+              username: user.username,
+              displayname: user.displayname,
+              role: user.role,
+              user: user,
+            };
+            return userSocketDto;
+        } catch (error) {
+          return null;
+        }
+      }
+
+}

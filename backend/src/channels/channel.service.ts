@@ -5,6 +5,10 @@ import { PrismaService } from '../../prisma/prisma.service'
 import { PrismaClient, Channel } from '@prisma/client'
 import { channel } from 'diagnostics_channel';
 import { randomBytes, createCipheriv, createDecipheriv, scrypt } from 'crypto';
+import { ChannelSocketDto } from 'src/dto/chat.dto';
+import { UsersService } from 'src/users/users.service';
+import { plainToClass } from 'class-transformer';
+import { validate } from 'class-validator';
 
 @Injectable()
 export class ChannelService {
@@ -14,7 +18,7 @@ export class ChannelService {
   private readonly PASSWORD = process.env.PASSWORD_2FA// Choisissez un mot de passe fort
   private key: Buffer;
 
-  constructor(private readonly prisma: PrismaService) {
+  constructor(private readonly prisma: PrismaService, private readonly userService: UsersService) {
     scrypt(this.PASSWORD, 'salt', this.KEY_LENGTH, (err, derivedKey) => {
       if (err) throw err;
       this.key = derivedKey;
@@ -120,6 +124,36 @@ export class ChannelService {
   * @throws {ConflictException} - Lancée si le nom du canal existe déjà.
   * @throws {BadRequestException} - Lancée si un canal privé est créé sans mot de passe.
   */
+  async createChanneli1(createChannelDto: CreateChannelDto): Promise<Channel> {
+    try {
+      const { name, type, ownerId, password } = createChannelDto;
+
+      const id = Number(ownerId);
+      const existingChannel: Channel = await this.findChannelByname(name, id);;
+      if (existingChannel)
+        throw new HttpException('cannal exist', HttpStatus.CONFLICT);
+
+      if (type === 'protected' && !password)
+        throw new HttpException('password not found', HttpStatus.BAD_REQUEST);
+
+      const hashedPassword: string = type === 'protected' ? await this.encrypt(password) : null;
+
+      const channel: Channel = await this.prisma.channel.create({
+        data: {
+          name,
+          type,
+          ownerId: id,
+          password: hashedPassword
+        }
+      });
+      if (channel) return channel;
+      throw new HttpException("cannal don't create", HttpStatus.NOT_IMPLEMENTED)
+    } catch (error) {
+      throw error;
+    }
+  }
+
+
   async createChannel(createChannelDto: CreateChannelDto): Promise<Channel> {
     try {
       const { name, type, ownerId, password } = createChannelDto;
@@ -349,4 +383,21 @@ export class ChannelService {
       });
     }
   }
+
+  async getChannelSocketDtoByChannel(channel: Channel): Promise<ChannelSocketDto> {
+    // Convertir l'objet Channel en ChannelSocketDto en utilisant class-transformer
+    const channelSocketDto = plainToClass(ChannelSocketDto, channel, {
+      excludeExtraneousValues: true,
+    });
+
+    channelSocketDto.creator = await this.userService.getUserSocketDtoByUserId(channel.ownerId.toString());
+    if (!channelSocketDto.creator)
+      throw new Error('creator channel not found');
+    console.log('ici');
+    const errors = await validate(channelSocketDto);
+    if (errors.length > 0)
+      throw new Error('Validation failed');
+    return channelSocketDto;
+  }
+
 }

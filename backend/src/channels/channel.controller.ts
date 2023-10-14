@@ -12,14 +12,24 @@ import {
   BadRequestException,
   HttpException,
   HttpStatus,
-  Param } from '@nestjs/common';
+  Param, 
+  Logger,
+  UseGuards} from '@nestjs/common';
 import { ChannelService } from './channel.service';
 import { CreateChannelDto, UpdateChannelDto, SearchChannelByNameDto, UpdateChannelByNameDto } from '../dto/channel.dto';
 import { PrismaClient, Channel } from '@prisma/client';
+import { error } from 'console';
+import { ChatGateway } from 'src/chat/chat.gateway';
+import { ChannelSocketDto } from 'src/dto/chat.dto';
+import { channel } from 'diagnostics_channel';
+import { JwtAuthGuard } from 'src/auth/jwt.guard';
 
+@UseGuards(JwtAuthGuard)
 @Controller('channels')
 export class ChannelController {
-  constructor(private readonly channelService: ChannelService) { }
+  private readonly logger: Logger = new Logger('ChannelController');
+
+  constructor(private readonly channelService: ChannelService, private readonly chatgateway: ChatGateway) { }
 
   /**
    * Crée un nouveau canal.
@@ -33,15 +43,30 @@ export class ChannelController {
    * */
   @Post('created')
   async createChannel(@Body() createChannelDto: CreateChannelDto): Promise<{ statusCode: number, message: string, isSuccess: boolean }> {
+    this.logger.debug(`EntryPoint begin try ${createChannelDto}`);
+    console.log("ICI");
     try {
-      const newChannel: Channel = await this.channelService.createChannel(createChannelDto);
-      console.log("Success create channel");
+      this.logger.debug(`entryPoint`);
+      const newChannel: Channel | null = await this.channelService.createChannel(createChannelDto);
+      if (!newChannel)
+        throw error();      
+      this.logger.debug(`Channel created ${newChannel}`);
+
+      const channelSocketDto: ChannelSocketDto = await this.channelService.getChannelSocketDtoByChannel(newChannel);
+      if (!channelSocketDto)
+        throw new NotFoundException(`Channel ${channelSocketDto.channel.name} not found`);
+
+      this.logger.debug(`begin event ${channelSocketDto}`);
+      this.chatgateway.handleChannelCreate(channelSocketDto);
+      this.logger.debug(`EndPoint ${channelSocketDto}`);
+
       return {
         statusCode: HttpStatus.CREATED,
         message: 'Channel created successfully.',
         isSuccess: true
       };
     } catch (error) {
+      this.logger.error(`Error ${error.message}`);
       if (error instanceof HttpException) {
         return {
             statusCode: error.getStatus(),
