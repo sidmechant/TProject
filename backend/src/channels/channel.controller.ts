@@ -122,34 +122,6 @@ export class ChannelController {
   * @uses JwtAuthGuard - Assurez-vous que la requête est authentifiée.
   * @returns {Promise<any>} 200 - La liste des canaux ou un message d'erreur.
   */
-  @Get('/channel/:id')
-  //@UseGuards(JwtAuthGuard)
-  async getChannelsByUser(@Param('id') userId: string, @Req() request: any): Promise<any> {
-    try {
-      //console.log("je suis dans getChannelsByUser");
-      // const id = Number(request.id);
-      const id: number = Number(userId); 
-      const channels: Channel[] = await this.channelService.getChannelsByUserId(id);
-      return {
-        statusCode: HttpStatus.FOUND,
-        data: channels,
-        message: 'Channels retrieved successfully.',
-        isSuccess: true
-      };
-    } catch (error) {
-        if (error instanceof HttpException) {
-          return {
-            statusCode: error.getStatus(),
-            message: error.message,
-            isSuccess: false
-          };
-        } return {
-          statusCode: HttpStatus.BAD_REQUEST,
-          message: 'bad request.',
-          isSuccess: false
-        };
-    }
-  }
 
   /**
    * Récupère la liste de tous les canaux.
@@ -158,6 +130,7 @@ export class ChannelController {
    * @group Channels - Opérations concernant les canaux.
    * @returns {Promise<any>} 200 - La liste des canaux ou un message d'erreur.
    */
+
   @Get('allChannel')
   async findAll(): Promise<any> {
     try {
@@ -219,6 +192,69 @@ export class ChannelController {
           isSuccess: false
         };
       }
+    }
+  }
+
+  @Get('/channel/:id')
+  //@UseGuards(JwtAuthGuard)
+  async getChannelsByUser(@Param('id') userId: string, @Req() request: any): Promise<any> {
+    try {
+      //console.log("je suis dans getChannelsByUser");
+      // const id = Number(request.id);
+      const id: number = Number(userId); 
+      const channels: Channel[] = await this.channelService.getChannelsByUserId(id);
+      return {
+        statusCode: HttpStatus.FOUND,
+        data: channels,
+        message: 'Channels retrieved successfully.',
+        isSuccess: true
+      };
+    } catch (error) {
+        if (error instanceof HttpException) {
+          return {
+            statusCode: error.getStatus(),
+            message: error.message,
+            isSuccess: false
+          };
+        } return {
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: 'bad request.',
+          isSuccess: false
+        };
+    }
+  }
+
+  @Get('missingChannels/:id')
+  async getMissingChannels(@Param('id') userId: string, @Req() request: any): Promise<any> {
+    try {
+      const id: number = Number(userId);
+      const userChannels: Channel[] = await this.channelService.getChannelsByUserId(id);
+
+      const allChannels: Channel[] = await this.channelService.findAllChannels();
+
+      const missingChannels: Channel[] = allChannels.filter((channel) => {
+        return !userChannels.some((userChannel) => userChannel.id === channel.id);
+      });
+
+      return {
+        statusCode: HttpStatus.OK,
+        data: missingChannels,
+        message: 'Missing channels retrieved successfully.',
+        isSuccess: true,
+      };
+    } catch (error) {
+      if (error instanceof HttpException) {
+        return {
+          statusCode: error.getStatus(),
+          message: error.message,
+          isSuccess: false,
+        };
+      }
+      return {
+        statusCode: HttpStatus.BAD_REQUEST,
+        message: 'Bad request.',
+        isSuccess: false,
+      };
     }
   }
 

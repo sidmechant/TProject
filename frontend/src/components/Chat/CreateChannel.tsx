@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import { CreateChannelApi } from './Fetch/ChannelFetch';
-import { Server as SocketIOServer } from 'socket.io';
+//import { Server as SocketIOServer } from 'socket.io';
 
 
 const Container = styled.div`
@@ -78,6 +78,7 @@ const Select = styled.select`
 
 // export default CreateChannel;
 
+/*
 
  const CreateChannel = ({ chatSocket }: { chatSocket: Socket<DefaultEventsMap, DefaultEventsMap> | null })=> {
     const [channelName, setChannelName] = useState('');
@@ -111,4 +112,4 @@ const Select = styled.select`
     );
 };
 
-export default CreateChannel;
+export default CreateChannel;*/

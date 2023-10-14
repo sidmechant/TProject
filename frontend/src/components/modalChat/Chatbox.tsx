@@ -26,7 +26,7 @@ interface User {
 function ChatMain(myUser: any) {
 	const [ menu, setMenu ] = useState<number>(1);
 	const [ selectedFriend, setSelectedFriend] = useState<any>(null);
-	const [ selectedChat, setSelectedChat] = useState<any>(null);
+	const [ selectedChat, setSelectedChat] = useState<any>(-1);
 
 	const [ navStyles, setNavStyles ] = useState({
 		NavOne: 'newNavOne',
@@ -84,13 +84,13 @@ function ChatMain(myUser: any) {
 					</button>
 				</div>
 				{menu === 1 
-					? <NavbarChat />
+					? <NavbarChat selectedChat={selectedChat} setSelectedChat={setSelectedChat}/>
 					: (menu === 2 ? <NavbarFriends selectedFriend={selectedFriend} setSelectedFriend={setSelectedFriend}/>
 					: <NavbarNotif />
 				)}
 			</div>
 			{menu === 1 
-				? <MainChat /> 
+				? <MainChat selectedChat={selectedChat} setSelectedChat={setSelectedChat}/> 
 				: (menu === 2 ? <MainFriends selectedFriend={selectedFriend} setSelectedFriend={setSelectedFriend}/> 
 				: <MainNotif />
 			)}
