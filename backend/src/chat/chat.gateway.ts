@@ -104,15 +104,15 @@ export class ChatGateway
     this.logger.log('event onChannel');
     /*** debug */
 
-    //console.log(`Inside conversation.create ${payload.creator.id}`);
-    //const client = this.sessionManager.getUserSocket(payload.creator.id);
-    //if (client) {
-    //  client.join(`channel-${payload.channel.id}`);
-    //  client.emit('onChannel', payload);
-    //  this.server.to('onChannel').emit("onChannel", payload);
-    //  this.logger.log('event onChannel');
-    //}
-    // this.logger.error('event onChannel failed');
+    console.log(`Inside conversation.create ${payload.creator.id}`);
+    const client = this.sessionManager.getUserSocket(payload.creator.id);
+    if (client) {
+      client.join(`channel-${payload.channel.id}`);
+      client.emit('onChannel', payload);
+      this.server.to('onChannel').emit("onChannel", payload);
+      this.logger.log('event onChannel');
+    }
+     this.logger.error('event onChannel failed');
   }
   
   @OnEvent('channel.create')
