@@ -85,6 +85,11 @@ const acceptFriendRequest = async (requesterId : any) => {
       handleAxiosError(error);
     }
   }
+
+  export const getMyself = () => {
+    const myself = JSON.parse(localStorage.getItem('player') as string);
+    return myself;
+  }
   
   const getUsersOnline = async () => {
     try {
@@ -104,6 +109,15 @@ const acceptFriendRequest = async (requesterId : any) => {
     }
   }
 
+  export const fetcher = async (route: string) => {
+    try {
+      const response = await axios.get(route);
+      return response.data;
+    } catch (error) {
+      handleAxiosError(error);
+    }
+
+  }
 
   const getDataByPseudoApi = async (pseudo: string) => {
     try {

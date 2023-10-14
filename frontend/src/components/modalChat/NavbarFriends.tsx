@@ -38,7 +38,6 @@ export default function NavbarFriends({selectedFriend, setSelectedFriend}: frien
     const selectedUserClass = 'h-10 w-[96%] mx-1 bg-white/40 border border-1 border-indigo-400 mt-4 flex items-center justify-center text-white'
     const findClass = 'hover:bg-black/10 h-10 min-h-[3rem] w-[96%] mx-1 bg-black/30 border border-1 mt-4 flex items-center justify-center text-white';
 
-
 	return (
 		<div className='newNavMain bg-black/10 flex flex-col overflow-auto'>
             <button key={-1}

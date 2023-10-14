@@ -6,6 +6,7 @@ import HomeLoading from './loadingPages/HomeLoading';
 import MenuHome from '../components/Home/Menu2D/MenuHome';
 import { LoadingContext, MeshProvider, RotationProvider } from '../components/ContextBoard';
 import { ChatBox } from '../components/ChatBox';
+import * as API from '../components/modalChat/FetchAPiChat';
 
 const Container = styled.div`
 	display: grid;
@@ -61,37 +62,24 @@ const items = [
 const ChargingTime = 10;
 const intervalTime = 10;
 
-function Sid() {
-
-  const button1 = () => {
-      //list friendship
-  };
-
-  const button2 = () => {
-
-  };
-
-  return (
-    <div className='bg-indigo-500 fixed top-0 r-0 w-[50%] h-[50%] flex flex-row justify-evenly items-center'>
-      <button
-      onClick={() => button1()}
-      className='w-36 h-36 bg-white text-black'>
-        button 1
-      </button>
-
-      <button
-      onClick={() => button1()}
-      className='w-36 h-36 bg-white text-black'>
-        button 1
-      </button>
-    </div>
-  )
-}
-
 const Home = () => {
 
   const [isLoading, setIsLoading] = useState(true);
   const [elapsedTime, setElapsedTime] = useState(0);
+
+  useEffect(() => {
+
+    const getMyUser = async () => {
+      const me = await API.fetcher('/players');
+
+      return me;
+    }
+
+      getMyUser().then((response: any) => {
+        console.log(response.player);
+        localStorage.setItem('player', JSON.stringify(response.player));
+      });
+  })
 
   useEffect(() => {
     const startTime = Date.now();

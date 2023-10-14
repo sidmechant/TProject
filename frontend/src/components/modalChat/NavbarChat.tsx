@@ -51,11 +51,12 @@ function ButtonConversation({onClick, message, id}: ConversationProps) {
 export default function NavbarChat({selectedChat, setSelectedChat}: ChatProps) {
 
 	const [ myChannels, setMyChannels ] = useState<Channel[] | null>(null);
+	const myUser = API.getMyself();
 
 	useEffect(() => {
 
 		const getMyChannels = async () => {
-			const fetchedMyChannels : Channel[] = await API.getMyChannels(1); //tmp value need real userId
+			const fetchedMyChannels : Channel[] = await API.getMyChannels(myUser.id); //tmp value need real userId
 
 			return fetchedMyChannels;
 		}
