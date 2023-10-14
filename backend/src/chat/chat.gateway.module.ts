@@ -1,36 +1,13 @@
-// // chat.gateway.module.ts
-// import { Module } from '@nestjs/common';
-// import { ChatGateway } from './chat.gateway';
-// import { ChatGatewayService } from './chat-gateway.service';
-// import { ChannelService } from './chat.service';
-// import { FriendRequestsEvents } from '../friend-request/friends.events';
-// import { GatewaySessionManager } from './chat.session'; // Importez la classe qui implémente IGatewaySessionManager
 
-// @Module({
-//   imports: [],
-//   providers: [
-//     ChatGateway,
-//     ChatGatewayService,
-//     ChannelService,
-//     FriendRequestsEvents,
-//     {
-//       provide: GatewaySessionManager,
-//       useClass: GatewaySessionManager, // Utilisez la classe qui implémente l'interface
-//     },
-//   ],
-// })
-// export class ChatGatewayModule {}
-
-// chat.gateway.module.ts
 import { Module } from '@nestjs/common';
 import { ChatGateway } from './chat.gateway';
 import { ChatGatewayService } from './chat-gateway.service';
 import { ChannelService } from './chat.service';
-// import { FriendRequestsEvents } from '../friend-request/friends.events';
-import { GatewaySessionManager } from './chat.session'; // Importez la classe qui implémente IGatewaySessionManager
+import { GatewaySessionManager } from './chat.session';
 import { FriendsModule } from 'src/friends/friends.module';
 import { FriendsService } from 'src/friends/friends.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { MessageService } from 'src/message/message.service';
 
 @Module({
   imports: [FriendsModule],
@@ -39,9 +16,8 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
     ChatGatewayService,
     ChannelService,
     FriendsService,
-    // FriendRequestsEvents,
     GatewaySessionManager,
-    EventEmitter2, // Assurez-vous que GatewaySessionManager est inclus ici
+    EventEmitter2,
   ],
 })
 export class ChatGatewayModule {}
