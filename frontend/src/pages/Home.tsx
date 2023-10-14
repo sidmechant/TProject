@@ -119,12 +119,12 @@ const Home = () => {
     )
   }
 
-  return (
+  /*return (
     <>
     <ChatBox />
     <Sid />
     </>
-  )
+  )*/
   
   return (
 

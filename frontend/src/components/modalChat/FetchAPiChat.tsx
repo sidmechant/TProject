@@ -59,6 +59,14 @@ const acceptFriendRequest = async (requesterId : any) => {
       handleAxiosError(error);
     }
   }
+
+  const deleteFriend = async (requesterId : any) => {
+    try {
+
+    } catch (error) {
+      handleAxiosError(error);
+    }
+  }
   
   const searchPseudo = async (pseudo : any) => {
     try {
@@ -108,7 +116,14 @@ const acceptFriendRequest = async (requesterId : any) => {
     }
   }
 
-
+  const getFriendlist = async () => {
+    try {
+      const response = await axios.get('/friends/friendlist');
+      return response.data;
+    } catch (error) {
+      handleAxiosError(error);
+    }
+  }
   const getPendingFriends = async () => {
       try {
           const response = await axios.get('/friends/pending');
@@ -149,4 +164,6 @@ const acceptFriendRequest = async (requesterId : any) => {
     getAcceptedFriends,
     getPendingFriends,
     getBlockedUsers,
+    getFriendlist,
+    deleteFriend,
   };

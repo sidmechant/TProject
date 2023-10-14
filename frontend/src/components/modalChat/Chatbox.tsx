@@ -25,9 +25,9 @@ interface User {
 
 function ChatMain(myUser: any) {
 	const [ menu, setMenu ] = useState<number>(1);
-    const [ main, setMain ] = useState<number>(1);
-	const [ inputFocus, setInputFocus ] = useState<boolean>(false);
-	const [ value, setValue ] = useState<string>('');
+	const [ selectedFriend, setSelectedFriend] = useState<any>(null);
+	const [ selectedChat, setSelectedChat] = useState<any>(null);
+
 	const [ navStyles, setNavStyles ] = useState({
 		NavOne: 'newNavOne',
 		NavTwo: 'newNavTwo',
@@ -35,20 +35,6 @@ function ChatMain(myUser: any) {
 	});
 
     const user = myUser.myUser as User;
-	const handleValue = (event: any) => setValue(event.target.value);
-
-	const submitMessage = () => {
-		console.log(value);
-		setValue('');
-	};
-
-	const handleEnterInput = (event: any) => {
-
-		if (event.key === 'Enter' && inputFocus) {
-			console.log("pressed ENTER");
-			submitMessage();
-		}
-	};
 
 	useEffect(() => {
 		switch (menu) {
@@ -97,10 +83,17 @@ function ChatMain(myUser: any) {
 						}
 					</button>
 				</div>
-				{menu === 1 ? <NavbarChat /> : (menu === 2 ? <NavbarFriends /> : <NavbarNotif />)}
+				{menu === 1 
+					? <NavbarChat />
+					: (menu === 2 ? <NavbarFriends selectedFriend={selectedFriend} setSelectedFriend={setSelectedFriend}/>
+					: <NavbarNotif />
+				)}
 			</div>
-            {menu === 1 ? <MainChat /> : (menu === 2 ? <MainFriends user={user}/> : <MainNotif />)}
-
+			{menu === 1 
+				? <MainChat /> 
+				: (menu === 2 ? <MainFriends selectedFriend={selectedFriend} setSelectedFriend={setSelectedFriend}/> 
+				: <MainNotif />
+			)}
 		</>
 	)
 }
@@ -110,10 +103,10 @@ export default function NewChatBox() {
 
 	const [ isChatBoxOpen, setChatBoxOpen ] = useState<boolean>(false);
 	const [ notification, setNotification ] = useState<boolean>(true);
-	const [ chatRatio , setChatRatio ] = useState<number>(1);
+	const [ chatRatio , setChatRatio ] = useState<number>(15);
     const [ myUser, setMyUser ] = useState<any>(null);
 
-	const chatSize = 16 + chatRatio;
+	const chatSize = (16 + chatRatio) < 31 ? 31 : 16 + chatRatio;
 
 	const chatBoxOpener = `${isChatBoxOpen ? 'hidden' : ''} ${notification ? 'text-indigo-700' : 'text-black'} hover:border-white hover:text-white bg-white/70 hover:bg-white/0 
 	flex justify-center items-center shadow-xl fixed left-5 bottom-5 z-5 border border-2 border-slate-500 w-16 h-10`;
@@ -131,13 +124,11 @@ export default function NewChatBox() {
     
         const GetUserData = async () => {
 
-            const fetchedUser = await API.getPlayerDataApi();
-
-            setMyUser(fetchedUser.player);
-            console.log("chatbox user: ", fetchedUser.player);
-
+			const fetchedUser = await API.getPlayerDataApi();
+			return fetchedUser.player;
         };
-        GetUserData();
+		setMyUser(GetUserData());
+        //GetUserData();
 
     }, []);
 
@@ -159,7 +150,7 @@ export default function NewChatBox() {
 				<button 
 				onClick={() => {setNotification(!notification)}}
 				className="hover:border-white hover:text-white bg-white/70 
-				flex justify-center items-center shadow-xl fixed left-40 bottom-5 z-5 border border-2 border-slate-500 w-16 h-10">
+				flex justify-center items-center shadow-xl fixed left-40 bottom-5 z-5 border-2 border-slate-500 w-16 h-10">
 					{notification ? <BsToggleOn/> : <BsToggleOff/>}
 				</button>
 			)}
@@ -182,7 +173,7 @@ export default function NewChatBox() {
 						initial={{ opacity: 0, scale: 0.5 }}
 						animate={{ opacity: 1, scale: 1 }}
 						transition={{ duration: 0.5 }}
-						className="backdrop-blur-sm bg-white/30 shadow-xl newChatBox"
+						className="backdrop-blur-sm bg-white/30 shadow-xl newChatBox h-[26rem] w-[26rem]"
 					>
 						<div className="bg-black/70 shadow-md newMenu flex flex-row-reverse items-center justify-between">
 							<motion.button
@@ -194,7 +185,7 @@ export default function NewChatBox() {
 							<div className="mx-10 w-[100%] flex justify-center items-center">
 								<Slider
 									value={chatRatio}
-									min={1}
+									min={15}
 									max={40}
 									aria-label="slider-chat"
 									colorScheme="gray"
