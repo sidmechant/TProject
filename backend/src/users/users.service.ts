@@ -5,6 +5,7 @@ import {
   } from '@nestjs/common';
 import {PrismaService} from 'prisma/prisma.service'
 import  {Request} from 'express'
+import { UserSocketDto } from 'src/dto/chat.dto';
 
 
 @Injectable()
@@ -36,6 +37,47 @@ export class UsersService {
     async getUsers() {
         return await this.prisma.user.findMany();
     }
+
+    async getUserIdByUsername(username: string): Promise<number | null> {
+      try {
+        const user = await this.prisma.user.findUnique({
+          where: { username },
+          select: { id: true },
+        }); 
+        if (!user)
+          throw new NotFoundException(`L'utilisateur avec le nom d'utilisateur ${username} n'a pas été trouvé.`); 
+        return user.id;
+      } catch (error) {
+        throw error;
+      }
+    }
+
+
+    async getUserSocketDtoByUsername(username: string): Promise<UserSocketDto | null> {
+      try {
+        const user = await this.prisma.user.findUnique({
+          where: { username },
+        });
+  
+        if (!user)
+          throw new NotFoundException(`L'utilisateur avec le nom d'utilisateur ${username} n'a pas été trouvé.`);
+  
+        const userSocketDto: UserSocketDto = {
+          id: user.id,
+          username: user.username,
+          displayname: user.displayname,
+          role: user.role,
+          user,
+        };
+  
+        return userSocketDto;
+      } catch (error) {
+        throw error;
+      }
+    }
+
+
+
 
 /*
     La fonction GetInfoUser est cree afin de selectionner

@@ -105,7 +105,6 @@ export class ChatGateway
    
   /* ****************************** MESSAGE *************************************** */
 
-
   @OnEvent('message.create')
   handleMessageCreateEvent(payload: MessageSocketDto) {
     console.log('Inside message.create');
