@@ -84,16 +84,16 @@ export class ChatGateway
   async onConversationJoin(@MessageBody() data: ChannelSocketDto, @ConnectedSocket() client: Socket) {  
     client.join(`channel-${data.channel.id}`);
     console.log(client.rooms);
-    client.to(`channel-${data.channel.id}`).emit('userJoin');
+    this.server.to(`channel-${data.channel.id}`).emit('userJoin');
   }
 
 
   @SubscribeMessage('onChannelLeave')
-  onConversationLeave(@MessageBody() data: ChannelSocketDto, @ConnectedSocket() client: Socket) {
-    console.log('onChannelLeave');
+  onChannelLeave(@MessageBody() data: ChannelSocketDto, @ConnectedSocket() client: Socket) {
+    this.server.to(`Channel-${data.channel.id}`).emit('userLeave');
     client.leave(`Channel-${data.channel.id}`);
+    console.log('onChannelLeave');
     console.log(client.rooms);
-    client.to(`Channel-${data.channel.id}`).emit('userLeave');
   }
   
   @OnEvent('channel.create')
@@ -104,7 +104,6 @@ export class ChatGateway
   }
    
   /* ****************************** MESSAGE *************************************** */
-
 
   @OnEvent('message.create')
   handleMessageCreateEvent(payload: MessageSocketDto) {

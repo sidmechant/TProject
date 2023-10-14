@@ -12,6 +12,7 @@ import { MessageService } from 'src/message/message.service';
 @Module({
   imports: [FriendsModule],
   providers: [
+    MessageService,
     ChatGateway,
     ChatGatewayService,
     ChannelService,

@@ -13,7 +13,8 @@ import {
   Request,
   HttpStatus,
   HttpException,
-  Res
+  Res,
+  NotFoundException
 } from '@nestjs/common';
 import { MessageService } from './message.service';
 import { CreateMessageDto } from './dto/create-message.dto';
@@ -24,6 +25,9 @@ import { JwtAuthGuard } from 'src/auth/jwt.guard';
 import { GetMessageDto } from './dto/get-message.dto';
 import { error } from 'console';
 import { ChatGateway } from 'src/chat/chat.gateway';
+import { UsersService } from 'src/users/users.service';
+import { MessageSocketDto, UserSocketDto } from 'src/dto/chat.dto';
+import { User } from '@prisma/client';
 
 @UseGuards(JwtAuthGuard)
 @Controller('message')
@@ -31,6 +35,7 @@ export class MessageController {
   constructor(
     private readonly messageService: MessageService,
     private readonly chatGateway: ChatGateway,
+    private readonly userService: UsersService,
     private eventEmitter: EventEmitter2
   ) {}
 
@@ -44,13 +49,17 @@ export class MessageController {
   )
 
   @Post('create')
-  async createMessage(@Req() req,@Body() createMessageDto: CreateMessageDto) {
+  async createMessage(@Req() req, @Body() createMessageDto: CreateMessageDto) {
     try {
       createMessageDto.userId = req.user.id;
       const message = await this.messageService.create(createMessageDto);
       if (!message) throw new error();
 
-      const messageSocketDto = { author: req.user, recipient: req.userRecipent, message: message };
+      const recipient: UserSocketDto | null = await this.userService.getUserSocketDtoByUsername(createMessageDto.recepient);
+      if (!recipient)
+        throw new NotFoundException(`User ${createMessageDto.recepient} not found`);
+
+      const messageSocketDto: MessageSocketDto = { author: req.user, recipient: recipient, message: message };
       this.chatGateway.handleMessageCreateEvent(messageSocketDto);
     
       return { status: HttpStatus.OK, message: message, isSuccess: true };

@@ -12,4 +12,8 @@ export class CreateMessageDto {
   @IsNotEmpty()
   @IsString()
   userId: string;
+  
+  @IsNotEmpty()
+  @IsString()
+  readonly recepient: string;
 }
