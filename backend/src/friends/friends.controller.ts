@@ -82,7 +82,7 @@ export class FriendsController {
   }
 
 
-  @SkipThrottle()
+@SkipThrottle()
 @UseGuards(JwtAuthGuard)
 @Get('search-pseudo')
 async searchPseudo(@Req() req, @Query('pseudo') pseudoToSearch: string): Promise<Player | null> {
@@ -165,12 +165,14 @@ async getFriendlist(@Req() req) {
     const pendingFriends = await this.friendsService.getPendingFriends(userId);
     const acceptedFriends = await this.friendsService.getAcceptedFriends(userId);
 
+    console.log("pend: ", pendingFriends);
+    console.log("acc : ", acceptedFriends);
     const allFriends = [
       ...pendingFriends.map(friend => ({ ...friend, status: 'requested' })),
       ...acceptedFriends.map(friend => ({ ...friend, status: 'accepted' }))
     ];
 
-    const enrichedFriends = await Promise.all(allFriends.map(async (friend: any) => {
+    /*const enrichedFriends = await Promise.all(allFriends.map(async (friend: any) => {
       const id = friend.id;
       const player = await this.playersService.getPlayerById(id);
       return {
@@ -178,8 +180,9 @@ async getFriendlist(@Req() req) {
         player,
       };
     }));
-
-    return enrichedFriends;
+    */
+   return allFriends;
+    //return enrichedFriends;
 
   } catch (error) {
     return;
