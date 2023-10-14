@@ -166,7 +166,14 @@ const acceptFriendRequest = async (requesterId : any) => {
   }
 
   export async function createChannel(channelData: any, jwtToken: string | null, sessionToken: string | null) {
-    const ENDPOINT_URL: string = 'channels/created';
+
+    const data = {
+      name: channelData.name,
+      username: 'engooh',
+      password: channelData.password,
+      type: channelData.type.toLowerCase(),
+    };
+    const ENDPOINT_URL: string = '/channel/created-channel';
     
     if (!channelData || !jwtToken)
         throw new Error("Missing required parameters.");
@@ -181,7 +188,7 @@ const acceptFriendRequest = async (requesterId : any) => {
 
     try {
       console.log('trying to create channel');
-        const response: any = await axios.post(ENDPOINT_URL, channelData, { headers });
+        const response: any = await axios.post(ENDPOINT_URL, data, { headers });
         console.log(response.data);
         return response.data;
     } catch (error) {

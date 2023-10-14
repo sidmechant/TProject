@@ -34,10 +34,18 @@ export class ChannelsController {
   }
 
   @Post('created-channel')
-  async createChannel(@Body() createChannelDto: CreateChannelDto): Promise<{ statusCode: number, message: string, isSuccess: boolean }> {
+  async createChannel(@Req() req, @Body() createChannelDto: CreateChannelDto): Promise<{ statusCode: number, message: string, isSuccess: boolean }> {
     this.logger.debug(`EntryPoint begin try ${createChannelDto}`);
     try {
       this.logger.debug(`entryPoint`);
+      createChannelDto.ownerId = Number(req.user.id);
+      this.logger.debug(`DATA name:
+        ${createChannelDto.name}
+        ownerId: ${createChannelDto.ownerId}
+        password: ${createChannelDto.password}
+        type: ${createChannelDto.type}
+        username ${createChannelDto.username}`);
+
       const newChannel: Channel | null = await this.channelService.createChannel(createChannelDto);
       if (!newChannel)
         throw error();      
