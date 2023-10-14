@@ -5,26 +5,15 @@ import { PrismaService } from '../../prisma/prisma.service';
 @Injectable()
 export class FriendsService {
   constructor(private readonly prisma: PrismaService) {}
-
-  async  getFriendsOfUser(userId: number) {
+  async getFriendsOfUser(userId: number) {
     const requestedFriends = await this.prisma.friend.findMany({
-        where: {
-            userId: userId,
-            status: "accepted"
-        },
-        select: {
-            friend: true
-        }
+        where: { userId: userId, status: "accepted" },
+        select: { friend: { include: { player: true } } }
     });
   
     const receivedFriends = await this.prisma.friend.findMany({
-        where: {
-            friendId: userId,
-            status: "accepted"
-        },
-        select: {
-            user: true
-        }
+        where: { friendId: userId, status: "accepted" },
+        select: { user: { include: { player: true } } }
     });
   
     const friends = [
@@ -35,35 +24,131 @@ export class FriendsService {
     return friends;
   }
 
-  async getAcceptedFriends(userId: number) {
-    const requestedFriends = await this.prisma.friend.findMany({
-        where: {
-            userId: userId,
-            status: "accepted"
-        },
-        select: {
-            friend: true
-        }
-    });
 
-    const receivedFriends = await this.prisma.friend.findMany({
-        where: {
-            friendId: userId,
-            status: "accepted"
-        },
-        select: {
-            user: true
-        }
+  async getBlockedUsers(userId: number): Promise<User[]> {
+    const blockedRelations = await this.prisma.friend.findMany({
+      where: { userId: userId, status: 'blocked' },
+      select: { friend: { include: { player: true } } }
+    });
+    return blockedRelations.map(relation => relation.friend);
+  }
+
+  async getUsersOnline(): Promise<User[]> {
+    return this.prisma.user.findMany({
+      where: { status: "ONLINE" },
+      include: { player: true }
+    });
+  }
+
+  async getPendingFriends(userId: number) {
+    const pendingRequests = await this.prisma.friend.findMany({
+        where: { friendId: userId, status: "requested" },
+        select: { user: { include: { player: true } } }
     });
   
-    const friends = [
-        ...requestedFriends.map(f => f.friend),
-        ...receivedFriends.map(f => f.user)
+    return pendingRequests.map(f => f.user);
+  }
+  
+  async getFriends(userId: number): Promise<Friend[]> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        requestedFriends: {
+          where: { status: 'accepted' },
+          include: { friend: { include: { player: true } } },
+        },
+        receivedRequests: {
+          where: { status: 'accepted' },
+          include: { user: { include: { player: true } } },
+        },
+      },
+    });
+  
+    if (!user) {
+      throw new NotFoundException('Utilisateur non trouvé.');
+    }
+  
+    const requestedFriends = user.requestedFriends;
+    const receivedFriends = user.receivedRequests;
+  
+    return [...requestedFriends, ...receivedFriends];
+  }
+
+
+  async getAcceptedFriends(userId: number): Promise<{ user: User, player: Player }[]> {
+    const acceptedFriendships = await this.prisma.friend.findMany({
+      where: {
+        AND: [
+          { status: 'accepted' },
+          {
+            OR: [
+              { userId: userId },
+              { friendId: userId }
+            ]
+          }
+        ]
+      },
+      include: {
+        user: {
+          include: {
+            player: true
+          }
+        },
+        friend: {
+          include: {
+            player: true
+          }
+        }
+      }
+    });
+  
+    // Extraire la liste des amis acceptés et leurs pseudos associés
+    const acceptedFriendsWithPseudo: { user: User, player: Player }[] = [];
+  
+    for (const friendship of acceptedFriendships) {
+      if (friendship.userId === userId) {
+        acceptedFriendsWithPseudo.push({ user: friendship.friend, player: friendship.friend.player });
+      } else {
+        acceptedFriendsWithPseudo.push({ user: friendship.user, player: friendship.user.player });
+      }
+    }
+  
+    return acceptedFriendsWithPseudo;
+  }
+
+
+
+  async getFriendsOnline(userId: number): Promise<User[]> {
+
+    const userWithFriends = await this.prisma.user.findUnique({
+      where: { id: userId },
+      include: { 
+        requestedFriends: {
+          where: { status: 'accepted' }, 
+          include: { friend: true }
+        },
+        receivedRequests: {
+          where: { status: 'accepted' }, 
+          include: { user: true }
+        }
+      }
+    });
+  
+    if (!userWithFriends) {
+      throw new Error("User not found");
+    }
+  
+    const allFriends = [
+      ...userWithFriends.requestedFriends.map(fr => fr.friend),
+      ...userWithFriends.receivedRequests.map(fr => fr.user)
     ];
   
-    return friends;
-}
-
+    // Filtrez la liste des amis pour ne conserver que ceux qui sont en ligne
+    const onlineFriends = allFriends.filter(friend => friend.status === "ONLINE");
+  
+    return onlineFriends;
+  }
+  
   async sendFriendRequest(senderId: number, receiverPseudo: string): Promise<Friend> {
     const receiverPlayer = await this.prisma.player.findFirst({ where: { pseudo: receiverPseudo } });
 
@@ -152,29 +237,6 @@ export class FriendsService {
   }
 
 
-  async getBlockedUsers(userId: number): Promise<User[]> {
-    // Récupération des utilisateurs bloqués
-    const blockedRelations = await this.prisma.friend.findMany({
-      where: {
-        userId: userId,
-        status: 'blocked'
-      },
-      select: {
-        friend: true
-      }
-    });
-
-    // Renvoyer uniquement les données des utilisateurs bloqués
-    return blockedRelations.map(relation => relation.friend);
-  }
-
-  async getUsersOnline(): Promise<User[]> {
-    return this.prisma.user.findMany({
-      where: {
-        status: "ONLINE"
-      }
-    });
-  }
   
   async setOnlineStatus(userId: number, online: boolean) {
     const status = online ? 'ONLINE' : 'OFFLINE';
@@ -184,51 +246,8 @@ export class FriendsService {
     });
   }
 
-  async getPendingFriends(userId: number) {
-    const pendingRequests = await this.prisma.friend.findMany({
-        where: {
-            friendId: userId, // Ligne modifiée
-            status: "requested"
-        },
-        select: {
-            user: true // Récupère l'utilisateur qui a fait la demande
-        }
-    });
-  
-    return pendingRequests.map(f => f.user); // Retourne les utilisateurs qui ont fait les demandes
-  }
-  
-
-  async getFriends(userId: number): Promise<Friend[]> {
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-      include: {
-        requestedFriends: {
-          where: { status: 'accepted' },
-          include: { friend: true },
-        },
-        receivedRequests: {
-          where: { status: 'accepted' },
-          include: { user: true },
-        },
-      },
-    });
-  
-    if (!user) {
-      throw new NotFoundException('Utilisateur non trouvé.');
-    }
-  
-    const requestedFriends = user.requestedFriends;
-    const receivedFriends = user.receivedRequests;
-  
-    return [...requestedFriends, ...receivedFriends];
-  }
-  
-   
-
 
   async findFriendById(id: number): Promise<Friend> {
-    // Cette fonction trouve un ami par son ID
     const friend = await this.prisma.friend.findUnique({ where: { id } });
 
     if (!friend) {
@@ -239,7 +258,6 @@ export class FriendsService {
   }
 
   async deleteFriend(id: number, userId: number): Promise<Friend> {
-    // Cette fonction supprime un ami par son ID
     const friend = await this.findFriendById(id);
 
     if (!friend) {
@@ -256,7 +274,6 @@ export class FriendsService {
   }
 
   async isFriends(userOneId: number, userTwoId: number): Promise<boolean> {
-    // Cette fonction vérifie si deux utilisateurs sont amis
     const friendship = await this.prisma.friend.findFirst({
       where: {
         OR: [
@@ -275,35 +292,6 @@ export class FriendsService {
     });
 
     return !!friendship;
-  }
-
-
-
-
-
-  async getFriendsOnline(userId: number): Promise<User[]> {
-    try {
-      // Récupérez la liste des amis de l'utilisateur avec le statut "accepted".
-      const userFriends = await this.prisma.friend.findMany({
-        where: {
-          userId: userId,
-          status: 'accepted',
-        },
-        select: {
-          friend: true,
-        },
-      });
-
-      // Filtrer la liste des amis en ligne parmi les amis de l'utilisateur.
-      const onlineFriends = userFriends.filter((friendship) => {
-        return friendship.friend.status === 'ONLINE';
-      });
-
-      return onlineFriends.map((friendship) => friendship.friend);
-    } catch (error) {
-      // Gérez les erreurs ici, par exemple, en lançant une exception ou en journalisant.
-      throw new NotFoundException("Aucun ami en ligne trouvé ou erreur lors de la recherche d'amis en ligne.");
-    }
   }
 
 }

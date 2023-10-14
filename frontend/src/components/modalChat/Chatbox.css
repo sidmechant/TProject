@@ -11,6 +11,35 @@
 	100% { transform: rotate(0deg); } 
  }
 
+ @keyframes moving-border {
+	0% {
+	  background-position: 0% 50%;
+	}
+	100% {
+	  background-position: 100% 50%;
+	}
+  }
+  
+  #animated-border {
+	border-width: 1px;
+	border-style: solid;
+	animation: moving-border 3s linear infinite;
+	background: linear-gradient(
+	  90deg,
+	  amber,
+	  yellow,
+	  amber
+	);
+	background-size: 200% 200%;
+	border-image-slice: 1;
+	border-image-source: linear-gradient(
+	  90deg,
+	  amber,
+	  yellow,
+	  amber
+	);
+  }
+
 .newChatBox {
 
 	display: grid;

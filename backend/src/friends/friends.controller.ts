@@ -155,7 +155,36 @@ async searchPseudo(@Req() req, @Query('pseudo') pseudoToSearch: string): Promise
    //   throw new HttpException("Une erreur s'est produite lors de la récupération des amis en ligne.", HttpStatus.BAD_REQUEST);
     }
   }
-  
+
+  @Get('friendlist')
+@UseGuards(JwtAuthGuard)
+async getFriendlist(@Req() req) {
+  try {
+    const userId = Number(req.userId);
+
+    const pendingFriends = await this.friendsService.getPendingFriends(userId);
+    const acceptedFriends = await this.friendsService.getAcceptedFriends(userId);
+
+    const allFriends = [
+      ...pendingFriends.map(friend => ({ ...friend, status: 'requested' })),
+      ...acceptedFriends.map(friend => ({ ...friend, status: 'accepted' }))
+    ];
+
+    const enrichedFriends = await Promise.all(allFriends.map(async (friend: any) => {
+      const id = friend.id;
+      const player = await this.playersService.getPlayerById(id);
+      return {
+        ...friend,
+        player,
+      };
+    }));
+
+    return enrichedFriends;
+
+  } catch (error) {
+    return;
+  }
+}
 
 
   @Get('pending')
