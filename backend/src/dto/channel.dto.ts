@@ -10,7 +10,7 @@ export class CreateChannelDto {
     @IsString()
     type: 'public' | 'private' | 'protected';
 
-    ownerId: number;
+    ownerId?: number;
 
     @IsString()
     password?: string;
