@@ -171,7 +171,7 @@ async getFriendlist(@Req() req) {
     ];
 
     const enrichedFriends = await Promise.all(allFriends.map(async (friend) => {
-      const id = friend.id;
+      const id = userId;
       const player = await this.playersService.getPlayerById(id);
       return {
         ...friend,

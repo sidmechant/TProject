@@ -2,7 +2,6 @@
 import { Module } from '@nestjs/common';
 import { ChatGateway } from './chat.gateway';
 import { ChatGatewayService } from './chat-gateway.service';
-import { ChannelService } from './chat.service';
 import { GatewaySessionManager } from './chat.session';
 import { FriendsModule } from 'src/friends/friends.module';
 import { FriendsService } from 'src/friends/friends.service';
