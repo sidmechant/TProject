@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import * as API from './FetchAPiChat';
 import './Chatbox.css';
+import { BiSolidCrown } from 'react-icons/bi';
+import { FaUsers, FaUser, FaUserTie, FaUserAltSlash, FaUserCog, FaUserMinus, FaUserPlus } from 'react-icons/fa';
 
 interface ConversationProps {
 
@@ -42,7 +44,7 @@ function ButtonConversation({onClick, message, id}: ConversationProps) {
 		id={id}
 		key={id}
 		onClick={onClick}
-		className='h-10 min-h-[4rem] w-[96%] mx-1 bg-white/20 border border-1 mt-4 flex items-center justify-center text-white'>
+		className='hover:bg-white/10 h-10 min-h-[4rem] w-[96%] mx-1 bg-white/20 border border-1 mt-4 flex items-center justify-center text-white'>
 				{message}
 		</button>
 	)
@@ -81,15 +83,10 @@ export default function NavbarChat({selectedChat, setSelectedChat}: ChatProps) {
 				console.log('find conv');
 				setSelectedChat(-2);
 			}}/>
-			<OptionConversation
-			message='Test'
-			onClick={() => {
-				console.log('Test');
-				setSelectedChat(0);
-			}}/>
-			{myChannels && myChannels.map((channel: Channel, index: number) => (
+			{myChannels && myChannels.map((channel: Channel) => (
 				<ButtonConversation
 				id={channel.id}
+				key={channel.id}
 				message={channel.name}
 				onClick={() => {
 					console.log(`set conv ${channel.id}`);
@@ -97,6 +94,10 @@ export default function NavbarChat({selectedChat, setSelectedChat}: ChatProps) {
 				}}
 				/>
 			))}
+			<div className='bg-white flex'>
+				<BiSolidCrown /><FaUser/><FaUserAltSlash/><FaUserCog/>
+				<FaUserMinus/><FaUserPlus/><FaUserTie/><FaUsers/>
+			</div>
 		</div>
 	)
 }
