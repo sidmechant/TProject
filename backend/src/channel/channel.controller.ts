@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Body, UseGuards, Param, Req, HttpException, HttpStatus, Logger, NotFoundException, Delete } from '@nestjs/common';
 import { Socket } from 'socket.io';
 import { AuthUser } from 'src/jwt/auth-user.decorator';
-import { ChannelMembership, Message, User } from '@prisma/client';
+import { ChannelMembership, Message, Player, User } from '@prisma/client';
 import { CreateChannelDto, GetChannelDto, JoinChannelDto } from '../dto/channel.dto';
 import { SkipThrottle } from '@nestjs/throttler';
 import { JwtAuthGuard } from 'src/auth/jwt.guard';
@@ -235,23 +235,64 @@ export class ChannelsController {
   }
 
   @Get('all_from_id')
-  async getAllUserChannel(@Req() req): Promise<{ statusCode: number, message: any, isSuccess: boolean }> {
+  async getAllUserChannelWithMembers(@Req() req): Promise<{ channelId: string, channelName: string, ownerId: number, players: Player[] }[]> {
     try {
-      const user = await this.prisma.user.findFirst({
+      const channels = await this.prisma.channel.findMany({
         where: {
-          id: Number(req.userId),
+          members: {
+            some: {
+              userId: Number(req.userId),
+            },
+          },
         },
         include: {
-          channels: true,
-        },
+          members: {
+            select: {
+              user: {
+                select: {
+                  player: true
+                }
+              }
+            }
+          }
+        }
       });
 
-      console.log(`user ${user.username} debug all_from_id `, user?.channels);
+      const formattedChannels = channels.map(channel => {
         return {
-          statusCode: HttpStatus.OK,
-          message: user.channels,
-          isSuccess: true
+          channelId: channel.id,
+          channelName: channel.name,
+          ownerId: channel.ownerId,
+          players: channel.members.map(member => member.user.player).filter(player => player) // Filter out any null/undefined players
         };
+      });
+
+      return formattedChannels; 
+    } catch (error) {
+      if (error instanceof HttpException) {
+        return null;
+      }
+    }
+}
+
+
+  @Post('join-channel')
+  async joinChannel(@Body() joinChannelDto: JoinChannelDto): Promise<{ statusCode: number, message: string, isSuccess: boolean }> {
+    try {
+      const { userId, channelId } = joinChannelDto;
+
+      const updatedUser = await this.channelService.addChannelMembershipToUser(channelId, Number(userId));
+      const updatedChannel = await this.channelService.addMemberToChannel(channelId, Number(userId));
+
+      if (!updatedUser || !updatedChannel) {
+        throw new NotFoundException('User or channel not found.');
+      }
+
+      return {
+        statusCode: HttpStatus.OK,
+        message: 'User joined the channel successfully.',
+        isSuccess: true,
+      };
     } catch (error) {
       if (error instanceof HttpException) {
         return {
@@ -263,73 +304,41 @@ export class ChannelsController {
         statusCode: HttpStatus.BAD_REQUEST,
         message: 'Bad request',
         isSuccess: false
+      };
+    }
+  }
+
+  @Post('leave-channel')
+  async leaveChannel(@Body() joinChannelDto: JoinChannelDto): Promise<{ statusCode: number, message: string, isSuccess: boolean }> {
+    try {
+      const { userId, channelId } = joinChannelDto;
+
+      const isMemberRemoved = await this.channelService.removeMemberToChannel(channelId, Number(userId));
+      const isMembershipRemoved = await this.channelService.removeChannelMembershipToUser(channelId, Number(userId));
+
+      if (!isMemberRemoved || !isMembershipRemoved) {
+        throw new NotFoundException('User or channel not found.');
       }
-    }
-  }
 
-@Post('join-channel')
-async joinChannel(@Body() joinChannelDto: JoinChannelDto): Promise<{ statusCode: number, message: string, isSuccess: boolean }> {
-  try {
-    const { userId, channelId } = joinChannelDto;
-
-    const updatedUser = await this.channelService.addChannelMembershipToUser(channelId, Number(userId));
-    const updatedChannel = await this.channelService.addMemberToChannel(channelId, Number(userId));
-
-    if (!updatedUser || !updatedChannel) {
-      throw new NotFoundException('User or channel not found.');
-    }
-
-    return {
-      statusCode: HttpStatus.OK,
-      message: 'User joined the channel successfully.',
-      isSuccess: true,
-    };
-  } catch (error) {
-    if (error instanceof HttpException) {
       return {
-        statusCode: error.getStatus(),
-        message: error.message,
+        statusCode: HttpStatus.OK,
+        message: 'User left the channel successfully.',
+        isSuccess: true,
+      };
+    } catch (error) {
+      if (error instanceof HttpException) {
+        return {
+          statusCode: error.getStatus(),
+          message: error.message,
+          isSuccess: false
+        };
+      } return {
+        statusCode: HttpStatus.BAD_REQUEST,
+        message: 'Bad request',
         isSuccess: false
       };
-    } return {
-      statusCode: HttpStatus.BAD_REQUEST,
-      message: 'Bad request',
-      isSuccess: false
-    };
-  }
-}
-
-@Post('leave-channel')
-async leaveChannel(@Body() joinChannelDto: JoinChannelDto): Promise<{ statusCode: number, message: string, isSuccess: boolean }> {
-  try {
-    const { userId, channelId } = joinChannelDto;
-
-    const isMemberRemoved = await this.channelService.removeMemberToChannel(channelId, Number(userId));
-    const isMembershipRemoved = await this.channelService.removeChannelMembershipToUser(channelId, Number(userId));
-
-    if (!isMemberRemoved || !isMembershipRemoved) {
-      throw new NotFoundException('User or channel not found.');
     }
-
-    return {
-      statusCode: HttpStatus.OK,
-      message: 'User left the channel successfully.',
-      isSuccess: true,
-    };
-  } catch (error) {
-    if (error instanceof HttpException) {
-      return {
-        statusCode: error.getStatus(),
-        message: error.message,
-        isSuccess: false
-      };
-    } return {
-      statusCode: HttpStatus.BAD_REQUEST,
-      message: 'Bad request',
-      isSuccess: false
-    };
   }
-}
 
 
 }
