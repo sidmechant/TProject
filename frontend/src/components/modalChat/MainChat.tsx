@@ -25,6 +25,10 @@ interface Channel {
     ownerId: number;
 }
 
+interface userProps {
+	user: any
+}
+
 function getCookie(name: string) {
 	const cookies = document.cookie.split(';');
 	for (let i = 0; i < cookies.length; i++) {
@@ -36,14 +40,14 @@ function getCookie(name: string) {
 	return null;
 }
 
-function FindConversation() {
+function FindConversation({user}: userProps) {
 	
 	const [ allConv, setAllConv ] = useState<Channel[] | null>(null);
 
 	useEffect(() => {
 
 		const getConv = async () => {
-			const fetchedConv = await API.getMissingChannels(1); //need to replace 1 with userId
+			const fetchedConv = await API.getMissingChannels(user.id); //need to replace 1 with userId
 
 			return fetchedConv;
 		}
@@ -68,7 +72,7 @@ function FindConversation() {
 	)
 }
 
-function CreateConversation() {
+function CreateConversation({user}: userProps) {
 	const [formData, setFormData] = useState({
 	  type: 'Public',
 	  name: '',
@@ -190,6 +194,7 @@ export default function MainChat({selectedChat, setSelectedChat}: ChatProps) {
     const [ value, setValue ] = useState<string>('');
     const [ inputFocus, setInputFocus ] = useState<boolean>(false);
 	const id = '1';
+	const user = API.getMyself();
 	const [messages, setMessages] = useState<MessageProps[]>([
 		{
 		  photo: 'https://i.imgur.com/G6zfcso.gif',
@@ -247,9 +252,9 @@ export default function MainChat({selectedChat, setSelectedChat}: ChatProps) {
 	};
 
 	if (selectedChat === -1) {
-		return <CreateConversation />;
+		return <CreateConversation user={user}/>;
 	} else if (selectedChat === -2) {
-		return <FindConversation />;
+		return <FindConversation user={user}/>;
 	}
 
     return (

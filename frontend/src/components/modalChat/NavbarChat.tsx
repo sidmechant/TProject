@@ -56,11 +56,9 @@ export default function NavbarChat({selectedChat, setSelectedChat}: ChatProps) {
 	useEffect(() => {
 
 		const getMyChannels = async () => {
-			const fetchedMyChannels : Channel[] = await API.getMyChannels(); //tmp value need real userId
-
-			console.log("Fetched Channels: ", fetchedMyChannels);
-
-			return fetchedMyChannels;
+			const fetchedMyChannels : any = await API.getMyChannels(); //tmp value need real userId
+			console.log("FETCHED: ", fetchedMyChannels.message);
+			return fetchedMyChannels?.message;
 		}
 
 		getMyChannels().then((result) => {
@@ -89,7 +87,7 @@ export default function NavbarChat({selectedChat, setSelectedChat}: ChatProps) {
 				console.log('Test');
 				setSelectedChat(0);
 			}}/>
-			{/*myChannels && myChannels.map((channel: Channel, index: number) => (
+			{myChannels && myChannels.map((channel: Channel, index: number) => (
 				<ButtonConversation
 				id={channel.id}
 				message={channel.name}
@@ -98,7 +96,7 @@ export default function NavbarChat({selectedChat, setSelectedChat}: ChatProps) {
 					setSelectedChat(channel.id);
 				}}
 				/>
-			))*/}
+			))}
 		</div>
 	)
 }
