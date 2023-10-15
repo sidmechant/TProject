@@ -11,6 +11,8 @@ import { plainToClass } from 'class-transformer';
 import { validate } from 'class-validator';
 import { ChannelSocketDto } from 'src/dto/chat.dto';
 import { UsersService } from 'src/users/users.service';
+import {ChannelRole} from '@prisma/client';
+
 
 @Injectable()
 export class ChannelService {

@@ -409,84 +409,84 @@ export class ChannelService {
 
 
 
-  async setAdmin(userId: number, channelId: string): Promise<ChannelMembership> {
-    return this.prisma.channelMembership.update({
-      where: {
-        userId_channelId: {
-          userId: userId,
-          channelId: channelId,
-        },
-      },
-      data: {
-        isAdmin: true,
-        role: 'ADMIN',
-      },
-    });
-  }
+//   async setAdmin(userId: number, channelId: string): Promise<ChannelMembership> {
+//     return this.prisma.channelMembership.update({
+//       where: {
+//         userId_channelId: {
+//           userId: userId,
+//           channelId: channelId,
+//         },
+//       },
+//       data: {
+//         isAdmin: true,
+//         role: 'ADMIN',
+//       },
+//     });
+//   }
 
-  async banUser(userId: number, channelId: string): Promise<ChannelMembership> {
-    return this.prisma.channelMembership.update({
-      where: {
-        userId_channelId: {
-          userId: userId,
-          channelId: channelId,
-        },
-      },
-      data: {
-        isBanned: true,
-      },
-    });
-  }
+//   async banUser(userId: number, channelId: string): Promise<ChannelMembership> {
+//     return this.prisma.channelMembership.update({
+//       where: {
+//         userId_channelId: {
+//           userId: userId,
+//           channelId: channelId,
+//         },
+//       },
+//       data: {
+//         isBanned: true,
+//       },
+//     });
+//   }
 
-  async muteUser(userId: number, channelId: string, duration: number): Promise<ChannelMembership> {
-    const mutedUntil = new Date();
-    mutedUntil.setMinutes(mutedUntil.getMinutes() + duration);
-    return this.prisma.channelMembership.update({
-      where: {
-        userId_channelId: {
-          userId: userId,
-          channelId: channelId,
-        },
-      },
-      data: {
-        mutedUntil: mutedUntil,
-      },
-    });
-  }
+//   async muteUser(userId: number, channelId: string, duration: number): Promise<ChannelMembership> {
+//     const mutedUntil = new Date();
+//     mutedUntil.setMinutes(mutedUntil.getMinutes() + duration);
+//     return this.prisma.channelMembership.update({
+//       where: {
+//         userId_channelId: {
+//           userId: userId,
+//           channelId: channelId,
+//         },
+//       },
+//       data: {
+//         mutedUntil: mutedUntil,
+//       },
+//     });
+//   }
 
-  async removeUser(userId: number, channelId: string): Promise<ChannelMembership> {
-    return this.prisma.channelMembership.delete({
-      where: {
-        userId_channelId: {
-          userId: userId,
-          channelId: channelId,
-        },
-      },
-    });
-  }
+//   async removeUser(userId: number, channelId: string): Promise<ChannelMembership> {
+//     return this.prisma.channelMembership.delete({
+//       where: {
+//         userId_channelId: {
+//           userId: userId,
+//           channelId: channelId,
+//         },
+//       },
+//     });
+//   }
 
 
-  async findMembershipForUserInChannel(userId: number, channelId: string): Promise<ChannelMembership | null> {
-    try {
-      const membership = await this.prisma.channelMembership.findFirst({
-        where: {
-          userId: userId,
-          channelId: channelId,
-        },
-      });
-      if (!membership) 
-        throw new HttpException(`Membership not found for user with ID ${userId} in channel with ID ${channelId}`, HttpStatus.NOT_FOUND);
+//   async findMembershipForUserInChannel(userId: number, channelId: string): Promise<ChannelMembership | null> {
+//     try {
+//       const membership = await this.prisma.channelMembership.findFirst({
+//         where: {
+//           userId: userId,
+//           channelId: channelId,
+//         },
+//       });
+//       if (!membership) 
+//         throw new HttpException(`Membership not found for user with ID ${userId} in channel with ID ${channelId}`, HttpStatus.NOT_FOUND);
   
-      return membership;
-    } catch (error) {
-      throw error;
-    }
-  }
+//       return membership;
+//     } catch (error) {
+//       throw error;
+//     }
+//   }
 
-  private async isUserAdmin(userId: number, channelId: string): Promise<boolean> {
-    const membership = await this.findMembershipForUserInChannel(userId, channelId);
-    return membership?.isAdmin ?? false;
-}
+//   private async isUserAdmin(userId: number, channelId: string): Promise<boolean> {
+//     const membership = await this.findMembershipForUserInChannel(userId, channelId);
+//     return membership?.isAdmin ?? false;
+// }
 
 
   /**

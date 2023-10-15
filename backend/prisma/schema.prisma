@@ -121,4 +121,5 @@ model ChannelMembership {
   isBanned  Boolean   @default(false)
   mutedUntil DateTime?  // null signifie que l'utilisateur n'est pas en sourdine
   role      ChannelRole  @default(MEMBER)
+
 }
