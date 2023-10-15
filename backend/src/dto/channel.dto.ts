@@ -70,13 +70,11 @@ export class CreateMessageDto {
   }
 
   export class JoinChannelDto { 
-    @IsNotEmpty()
     @IsString()
     channelId: string;
   }
   
   export class JoinChannelProtectedDto { 
-    @IsNotEmpty()
     @IsString()
     channelId: string;
 

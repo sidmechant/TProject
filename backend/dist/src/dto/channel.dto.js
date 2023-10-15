@@ -89,7 +89,6 @@ class JoinChannelDto {
 }
 exports.JoinChannelDto = JoinChannelDto;
 __decorate([
-    (0, class_validator_1.IsNotEmpty)(),
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], JoinChannelDto.prototype, "channelId", void 0);
@@ -97,7 +96,6 @@ class JoinChannelProtectedDto {
 }
 exports.JoinChannelProtectedDto = JoinChannelProtectedDto;
 __decorate([
-    (0, class_validator_1.IsNotEmpty)(),
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], JoinChannelProtectedDto.prototype, "channelId", void 0);

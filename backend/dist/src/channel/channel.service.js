@@ -352,6 +352,7 @@ let ChannelService = class ChannelService {
                     members: true,
                 },
             });
+            console.log("chan: ", channel);
             if (!channel)
                 throw new Error('Canal non trouvé');
             if (channel.password && password !== channel.password) {
@@ -380,9 +381,11 @@ let ChannelService = class ChannelService {
                     members: true,
                 },
             });
+            console.log("uCHAN: ", updatedChannel);
             return updatedChannel;
         }
         catch (error) {
+            console.log(error.message);
             return null;
         }
     }

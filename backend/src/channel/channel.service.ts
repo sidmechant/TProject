@@ -416,6 +416,7 @@ export class ChannelService {
         },
       });
   
+      console.log("chan: ", channel);
       if (!channel)
         throw new Error('Canal non trouvé');
   
@@ -449,8 +450,10 @@ export class ChannelService {
         },
       });
   
+      console.log("uCHAN: ", updatedChannel);
       return updatedChannel;
     } catch (error) {
+      console.log(error.message);
       return null;
     }
   }
