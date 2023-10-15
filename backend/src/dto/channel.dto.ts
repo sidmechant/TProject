@@ -63,6 +63,10 @@ export class CreateMessageDto {
   
     @IsEmpty()
     @IsString()
+    readonly channelName?: string;
+    
+    @IsEmpty()
+    @IsString()
     userId: string;
     
     @IsEmpty()

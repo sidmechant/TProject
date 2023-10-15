@@ -122,6 +122,11 @@ export class ChatGateway
   }
   /* ****************************** MESSAGE *************************************** */
 
+  @OnEvent('message.send')
+  handleMessageSend(channelName, message: string) {
+    this.server.to(channelName).emit('newMessage', message);
+  }
+
   @OnEvent('message.create')
   handleMessageCreateEvent(payload: MessageSocketDto) {
     console.log('Inside message.create');

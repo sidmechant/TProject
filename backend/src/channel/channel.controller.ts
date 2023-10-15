@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, UseGuards, Param, Req, HttpException, Http
 import { Socket } from 'socket.io';
 import { AuthUser } from 'src/jwt/auth-user.decorator';
 import { ChannelMembership, Message, Player, User } from '@prisma/client';
-import { CreateChannelDto, GetChannelDto, JoinChannelDto } from '../dto/channel.dto';
+import { CreateChannelDto, CreateMessageDto, GetChannelDto, JoinChannelDto } from '../dto/channel.dto';
 import { SkipThrottle } from '@nestjs/throttler';
 import { JwtAuthGuard } from 'src/auth/jwt.guard';
 import { EventEmitter2 } from '@nestjs/event-emitter';
@@ -13,6 +13,7 @@ import { ChannelSocketDto } from 'src/dto/chat.dto';
 import { error } from 'console';
 import { ChatGateway } from 'src/chat/chat.gateway';
 import { PrismaService } from 'prisma/prisma.service';
+import { centroid } from 'math/vec2';
 
 
 @SkipThrottle()
@@ -232,6 +233,16 @@ export class ChannelsController {
     }
   }
 
+  /*
+    socket.emit('newMessage, message);
+      message: {
+        senderId,
+        content,
+        createdAt,
+        channelId
+      }
+    */
+
   @Get('all_from_id')
   async getAllUserChannelWithMembers(@Req() req): Promise<{ channelId: string, channelName: string, ownerId: number, players: Player[] }[]> {
     try {
@@ -273,16 +284,15 @@ export class ChannelsController {
     }
   }
 
-
   @Post('join-channel')
   async joinChannel(@Body() joinChannelDto: JoinChannelDto): Promise<boolean> {
     try {
       const { userId, channelId } = joinChannelDto;
 
-      const updatedUser = await this.channelService.addChannelMembershipToUser(channelId, Number(userId));
+      //const updatedUser = await this.channelService.addChannelMembershipToUser(channelId, Number(userId));
       const updatedChannel = await this.channelService.addMemberToChannel(channelId, Number(userId));
 
-      if (!updatedUser || !updatedChannel) {
+      if (!updatedChannel) {
         throw new NotFoundException('User or channel not found.');
       }
       return true;
@@ -296,10 +306,10 @@ export class ChannelsController {
     try {
       const { userId, channelId } = joinChannelDto;
 
-      const isMemberRemoved = await this.channelService.removeMemberToChannel(channelId, Number(userId));
+      //const isMemberRemoved = await this.channelService.removeMemberToChannel(channelId, Number(userId));
       const isMembershipRemoved = await this.channelService.removeChannelMembershipToUser(channelId, Number(userId));
 
-      if (!isMemberRemoved || !isMembershipRemoved) {
+      if (!isMembershipRemoved) {
         throw new NotFoundException('User or channel not found.');
       }
       return true;
@@ -320,6 +330,23 @@ export class ChannelsController {
       } catch (error) {
         return null;
       }
+  }
+
+  @UseGuards()
+  @Post('send-message')
+  async sendMessage(@Req() req, @Body() createMessageDto: CreateMessageDto): Promise<Message[] | null> {
+    try {
+      createMessageDto.userId = req.userId; // Set userId property
+      if (!createMessageDto.userId)
+        throw new NotFoundException('User not found');
+  
+      const updatedMessages = await this.channelService.addMessageInChannel(createMessageDto);
+      const message: string = updatedMessages[updatedMessages.length - 1].content
+      this.chatGateway.handleMessageSend(createMessageDto.channelName, message);
+      return updatedMessages || null;
+    } catch (error) {
+      return null;
+    }
   }
   
 
