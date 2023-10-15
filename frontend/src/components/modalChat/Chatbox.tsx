@@ -100,7 +100,7 @@ function ChatMain(myUser: any) {
 }
 
 
-export default function NewChatBox() {
+export default function ChatBox({ready}: {ready: boolean}) {
 
 	const [ isChatBoxOpen, setChatBoxOpen ] = useState<boolean>(false);
 	const [ notification, setNotification ] = useState<boolean>(true);
@@ -121,18 +121,21 @@ export default function NewChatBox() {
 			//ToggleChat();
 	};
 
-    useEffect(() => {
+   useEffect(() => {
     
-        const GetUserData = () => {
+        /*const GetUserData = async () => {
 
-			const fetchedUser = API.getMyself();//await API.getPlayerDataApi();
+			const fetchedUser = await oldAPI.getPlayerDataApi();
 			return fetchedUser.player;
         };
 		if (API.getCookie('jwt_token'))
 			setMyUser(GetUserData());
-        //GetUserData();
+        //GetUserData();*/
+		console.log("IS LOADING: ", ready);
+		const player = API.getMyself();
+		setMyUser(player);
 
-    });
+    }, [ready]);
 
 	useEffect(() => {
 		if (isChatBoxOpen) {

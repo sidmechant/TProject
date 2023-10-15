@@ -54,6 +54,8 @@ export function SetConnection({ children }: { children: ReactNode }): ReactEleme
 
 			let localToken = getToken('token');
 			if (localToken) {
+
+				console.log("checkForToken exist");
 				setIsLoading(false);
 				clearInterval(interval);
 				setToken(localToken);
@@ -75,6 +77,8 @@ export function SetConnection({ children }: { children: ReactNode }): ReactEleme
 	};
 
 	const startAuthProcess = () => {
+
+		console.log("START AUTH PROCESS");
 		setIsLoading(true);
 		const newWindow = window.open('http://localhost:3000/42/login', '_blank');
 		newWindow && checkForToken(newWindow);
@@ -109,7 +113,10 @@ export function SetConnection({ children }: { children: ReactNode }): ReactEleme
 			console.log('needToReload');
 			const fetchData = async () => {
 				try {
+
+					console.log("Connection.ts DATA ?");
 					const data = await getPlayerDataApi();
+					console.log("CONNECTION.TS data: ", data);
 					setIsConnected(true);
 					if (data.role === 'USER') {
 						setIsUser(true);
@@ -118,6 +125,7 @@ export function SetConnection({ children }: { children: ReactNode }): ReactEleme
 						setIsUser(false);
 					setUserInfo({ pseudo: data.player.pseudo, urlPhoto: data.player.urlPhotoProfile });
 				} catch (error: any) {
+					console.log("ERROR CODE: ", error.statusCode);
 					if (error && error.statusCode === 428) {
 						setNeedToAuthentified(true);
 						console.error("coucou::", error); // ?
@@ -162,6 +170,7 @@ export function SetConnection({ children }: { children: ReactNode }): ReactEleme
 						credentials: 'include'
 					});
 					const data = await response.json();
+					console.log("42/user data: ", data);
 					setApiData(data);
 				} catch (error) {
 					console.error("Erreur lors de l'obtention du JWT:", error);

@@ -1,11 +1,11 @@
-import { useEffect, useState } from 'react';
+import { SetStateAction, useEffect, useState } from 'react';
 import transition from '../components/Transition';
 import styled from 'styled-components';
 import HomeScene from '../components/Home/Menu3D/HomeScene';
 import HomeLoading from './loadingPages/HomeLoading';
 import MenuHome from '../components/Home/Menu2D/MenuHome';
 import { LoadingContext, MeshProvider, RotationProvider } from '../components/ContextBoard';
-import { ChatBox } from '../components/ChatBox';
+import  { ChatBox }  from '../components/ChatBox';
 import * as API from '../components/modalChat/FetchAPiChat';
 
 const Container = styled.div`
@@ -62,7 +62,7 @@ const items = [
 const ChargingTime = 10;
 const intervalTime = 10;
 
-const Home = () => {
+export default function Home({setReady}:{setReady:React.Dispatch<SetStateAction<boolean>>}) {
 
   const [isLoading, setIsLoading] = useState(true);
   const [elapsedTime, setElapsedTime] = useState(0);
@@ -95,8 +95,8 @@ const Home = () => {
     
     if (!isLoading && API.getCookie('jwt_token')) {
       getMyUser().then((response: any) => {
-        console.log(response.player);
         localStorage.setItem('player', JSON.stringify(response.player));
+        setReady(true);
       });
     }
   }, [isLoading])
@@ -138,4 +138,5 @@ const Home = () => {
 }
 
 
-export default transition(Home);
+//export default transition(Home);
+//export default Home;

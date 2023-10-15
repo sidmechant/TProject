@@ -33,6 +33,7 @@ import NewChatBox from './components/modalChat/Chatbox';
 function App() {
 	const location = useLocation();
 	const [isChatBoxOpen, setIsChatBoxOpen] = useState<boolean>(false);
+	const [ ready, setReady ] = useState<boolean>(false);
 
 	return (
 		<ChakraProvider>
@@ -42,7 +43,7 @@ function App() {
 					<AnimatePresence mode="wait">
 						<Routes location={location} key={location.pathname}>
 							<Route index element={
-								<Home />} />
+								<Home setReady={setReady}/>} />
 							<Route path="/about" element={
 								<AnimatedPage endColor="#df6b58">
 									<About />
@@ -65,7 +66,7 @@ function App() {
 					</AnimatePresence>
 				</ChatBoxContext.Provider>
 			</Connection>
-			<NewChatBox />
+			<NewChatBox ready={ready}/>
 		</ChakraProvider>
 	)
 }

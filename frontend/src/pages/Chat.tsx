@@ -1,7 +1,8 @@
 import { AiOutlineMenu, AiOutlineMessage, AiOutlineSend, AiOutlinePlusCircle } from 'react-icons/ai';
 import { BsFillPersonFill } from 'react-icons/bs';
 import { useEffect, useState } from 'react';
-import * as API from '../components/Profil/FetchApi';
+import * as oldAPI from '../components/Profil/FetchApi';
+import * as API from '../components/modalChat/FetchAPiChat';
  
 interface MessageProps { //model message temporaire
   photo: string; //photo du user qui envoi le msg
@@ -112,10 +113,15 @@ function Discussion() {
 
   useEffect(() => {
 
-    const fetchData = async () => {
+    /*const fetchData = async () => {
       const user = await API.getPlayerDataApi();
 
       setMyUser(user.player);
+    }*/
+
+    const fetchData = () => {
+      const user = API.getMyself();
+      setMyUser(user);
     }
 
     fetchData();

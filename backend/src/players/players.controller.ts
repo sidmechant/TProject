@@ -20,12 +20,17 @@ export class PlayersController {
   @UseGuards(JwtAuthGuard)
   @Get('')
   async getPlayerbyId(@Req() req): Promise<{ player: Player, role: string, isProfileUpdated: boolean,  isTwoFactorAuthEnabled: boolean  }> {
+    
     try {
+
+      console.log("TRYING TO GET REQ.ID");
       const id: number = Number(req.userId);
 
+      console.log("GOT THE ID: ", id);
       // Utilisez la fonction getPlayerById du service pour récupérer le joueur par ID
       const player = await this.playersService.getPlayerById(id);
 
+      console.log("GETTING PLAYER");
       if (!player) {
         throw new HttpException("Le player n'a pas été trouvé.", HttpStatus.NOT_FOUND);
       }
@@ -46,7 +51,8 @@ export class PlayersController {
         isTwoFactorAuthEnabled: isTwoFactorAuthEnabled
       };
     } catch (error) {
-      console.error("Une erreur s'est produite lors de la récupération des détails du joueur.", error);
+      console.error("PROBLEME");
+      //console.error("Une erreur s'est produite lors de la récupération des détails du joueur.", error);
       //throw new HttpException("Une erreur s'est produite lors de la récupération des détails du joueur.", HttpStatus.BAD_REQUEST);
     }
   }
