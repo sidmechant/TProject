@@ -285,16 +285,16 @@ export class ChannelsController {
   }
 
   @Patch('join-channel')
-  async joinChannel(@Body() joinChannelDto: JoinChannelDto): Promise<boolean> {
+  async joinChannel(@Req() req, @Body() joinChannelDto: JoinChannelDto): Promise<boolean> {
     try {
-      const { userId, channelId } = joinChannelDto;
+      const { channelId } = joinChannelDto;
+      const userId: number = req.userId;
 
       //const updatedUser = await this.channelService.addChannelMembershipToUser(channelId, Number(userId));
       const updatedChannel = await this.channelService.addMemberToChannel(channelId, Number(userId));
 
-      if (!updatedChannel) {
+      if (!updatedChannel) 
         throw new NotFoundException('User or channel not found.');
-      }
       return true;
     } catch (error) {
       return false;
@@ -302,16 +302,17 @@ export class ChannelsController {
   }
 
   @Patch('join-channel-protected')
-  async joinChannelProtected(@Body() joinChannelDto: JoinChannelDto): Promise<boolean> {
+  async joinChannelProtected(@Req() req, @Body() joinChannelDto: JoinChannelDto): Promise<boolean> {
     try {
-      const { userId, channelId, password } = joinChannelDto;
+      const { channelId, password } = joinChannelDto;
+      const userId: number = req.userId;
 
       //const updatedUser = await this.channelService.addChannelMembershipToUser(channelId, Number(userId));
       const updatedChannel = await this.channelService.addMemberToChannel(channelId, Number(userId), password);
 
-      if (!updatedChannel) {
+      if (!updatedChannel)
         throw new NotFoundException('User or channel not found.');
-      }
+
       return true;
     } catch (error) {
       return false;
