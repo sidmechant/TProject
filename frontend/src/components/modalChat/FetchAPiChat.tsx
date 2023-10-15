@@ -249,17 +249,17 @@ const acceptFriendRequest = async (requesterId : any) => {
     }
   }
 
-  export const joinPublic = async () => {
+  export const joinPublic = async (channelId: string) => {
     try {
-      await axios.patch('/channel/join-channel');
+      await axios.patch('/channel/join-channel', {channelId});
     } catch (error) {
       handleAxiosError(error);
     }
   }
 
-  export const joinProtected = async (password: string) => {
+  export const joinProtected = async (channelId: string, password: string) => {
     try {
-      await axios.patch('/channel/join-channel-protected', password);
+      await axios.patch('/channel/join-channel-protected', {channelId, password});
     } catch (error) {
       handleAxiosError(error);
     }

@@ -144,13 +144,13 @@ function FindConversation({user}: userProps) {
 
 	const submitPublic = async () => {
 
-		const response = await API.joinPublic();
+		const response = await API.joinPublic(modal.id);
 		console.log("Submit public: ", response);
 	};
 
 	const submitProtected = async () => {
 
-		const response = await API.joinProtected(password);
+		const response = await API.joinProtected(modal.id, password);
 		console.log("Submit protected: ", response);
 	};
 
