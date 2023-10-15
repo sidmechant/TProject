@@ -49,6 +49,11 @@ export class ChatGateway
     this.sessionManager.removeUserSocket(token);
   }
 
+  @SubscribeMessage('joinChannel')
+  handleJoinChannel(@MessageBody() channel: string, @ConnectedSocket() client: Socket) {
+    client.join(channel);
+  }
+
   @SubscribeMessage('message')
   handleMessage(@MessageBody() message: string): void {
     const formattedMessage = `Nouveau message : ${message}`;
