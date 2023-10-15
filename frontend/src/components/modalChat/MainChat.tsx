@@ -6,7 +6,24 @@ import {
 	FormControl,
 	FormLabel,
 	Select,
-	Input
+	Input,
+	Accordion,
+	AccordionItem,
+	AccordionButton,
+	AccordionPanel,
+	AccordionIcon,
+	Box,
+	Button
+  } from '@chakra-ui/react'
+  import {
+	Modal,
+	ModalOverlay,
+	ModalContent,
+	ModalHeader,
+	ModalFooter,
+	ModalBody,
+	ModalCloseButton,
+	useDisclosure,
   } from '@chakra-ui/react'
 import * as API from './FetchAPiChat';
 
@@ -40,15 +57,82 @@ function getCookie(name: string) {
 	return null;
 }
 
+function FindProtectedModal() {
+
+	const { isOpen, onOpen, onClose } = useDisclosure()
+  return (
+    <>
+      <Button onClick={onOpen}>Open Modal</Button>
+
+      <Modal isOpen={isOpen} onClose={onClose}>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Modal Title</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            PROTECTED
+          </ModalBody>
+
+          <ModalFooter>
+            <Button colorScheme='blue' mr={3} onClick={onClose}>
+              Close
+            </Button>
+            <Button variant='ghost'>Secondary Action</Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+    </>
+  )
+}
+
+function FindPublicModal() {
+
+	const { isOpen, onOpen, onClose } = useDisclosure()
+  return (
+    <>
+      <Button onClick={onOpen}>Open Modal</Button>
+
+      <Modal isOpen={isOpen} onClose={onClose}>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Modal Title</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            PUBLIC
+          </ModalBody>
+
+          <ModalFooter>
+            <Button colorScheme='blue' mr={3} onClick={onClose}>
+              Close
+            </Button>
+            <Button variant='ghost'>Secondary Action</Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+    </>
+  )
+
+}
+
 function FindConversation({user}: userProps) {
 	
 	const [ allConv, setAllConv ] = useState<Channel[] | null>(null);
+	const [ modal, setModal ] = useState<any>(null);
+	const [ password, setPassword ] = useState<string>('');
+	const { isOpen, onOpen, onClose } = useDisclosure();
+
+
+	useEffect(() => {
+
+		console.log("modal: ", modal);
+	}, [modal]);
 
 	useEffect(() => {
 
 		const getConv = async () => {
-			const fetchedConv = await API.getMissingChannels(user.id); //need to replace 1 with userId
+			const fetchedConv = await API.getMissingChannels(); //need to replace 1 with userId
 
+			console.log("FIND CONV: ", fetchedConv);
 			return fetchedConv;
 		}
 
@@ -58,19 +142,93 @@ function FindConversation({user}: userProps) {
 
 	}, []);
 
+	const submitPublic = async () => {
+
+		const response = await API.joinPublic();
+		console.log("Submit public: ", response);
+	};
+
+	const submitProtected = async () => {
+
+		const response = await API.joinProtected(password);
+		console.log("Submit protected: ", response);
+	};
+
+	const handleChange = (event: any) => {
+
+		setPassword(event.target.value);
+	};
+
 	return (
-		<div className="bg-slate-500/30 MainChat flex justify-center items-center text-black">
-			{allConv && allConv.map((conv: Channel, index: number) => (
-				<button
-				id={`${index}`}
-				key={index}
-				className='h-10 min-h-[4rem] w-[96%] mx-1 bg-white/20 
-				border border-1 mt-4 flex items-center justify-center text-white'
-				>
-					{conv.name}
-				</button>
-			))}
-		</div>
+		<>
+			<div className="bg-slate-500/30 MainChat flex justify-center items-start text-black">
+				<Accordion allowToggle className='w-full h-full flex flex-col overflow-auto'>
+					<AccordionItem key='public' className='bg-white/70'>
+						<h2>
+							<AccordionButton>
+								<Box as='span' flex='1' textAlign='left'>
+									Public channels
+								</Box>
+								<AccordionIcon />
+							</AccordionButton>
+						</h2>
+						{allConv && allConv.filter((conv: Channel) => conv.type === 'public').map((conv: Channel, index: number) => (
+							<AccordionPanel className='bg-indigo-700/20 hover:bg-indigo-700/30' id={`${conv.id}`} key={conv.id} pb={4} onClick={() => {setModal(conv);onOpen()}}>
+							{conv.name}
+							</AccordionPanel>
+
+						))}
+					</AccordionItem>
+
+					<AccordionItem key='protected' className='bg-white/70'>
+						<h2>
+							<AccordionButton>
+								<Box as='span' flex='1' textAlign='left'>
+									Protected channels
+								</Box>
+								<AccordionIcon />
+							</AccordionButton>
+						</h2>
+						{allConv && allConv.filter((conv: Channel) => conv.type === 'protected').map((conv: Channel, index: number) => (
+						<AccordionPanel className='bg-indigo-700/20 hover:bg-indigo-700/30' id={`${conv.id}`} key={conv.id} pb={4} onClick={() => {setModal(conv);onOpen()}}>
+								{conv.name}
+						</AccordionPanel>
+
+						))}
+					</AccordionItem>
+				</Accordion>
+			</div>
+			{ modal && (
+				<Modal isOpen={isOpen} onClose={onClose}>
+				<ModalOverlay />
+				<ModalContent>
+				<ModalHeader>{modal.name}</ModalHeader>
+				<ModalCloseButton />
+				<ModalBody>
+					{modal.type === 'protected'
+					? (<Input
+						id='password'
+						bg={'white'}
+						placeholder="********"
+						name="password"
+						type='password'
+						value={password}
+						onChange={handleChange}
+					  />)
+					: ''
+					}
+				</ModalBody>
+
+				<ModalFooter>
+					<Button colorScheme='pink' mr={3} onClick={onClose}>
+					Close
+					</Button>
+					<Button colorScheme='gray'>Join Channel</Button>
+				</ModalFooter>
+				</ModalContent>
+				</Modal>
+			)}
+		</>
 	)
 }
 

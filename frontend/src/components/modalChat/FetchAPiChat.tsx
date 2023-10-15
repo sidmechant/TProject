@@ -229,9 +229,9 @@ const acceptFriendRequest = async (requesterId : any) => {
     }
   }
 
-  export const getMissingChannels = async (userId: number) => {
+  export const getMissingChannels = async () => {
     try {
-      const response = await axios.get(`/channels/missingChannels/${userId}`);
+      const response = await axios.get('/channel/available-channels');
       return response.data;
     } catch (error) {
       handleAxiosError(error);
@@ -244,6 +244,22 @@ const acceptFriendRequest = async (requesterId : any) => {
 
       console.log("GETALL MY CHANNELS: ", response);
       return response.data;
+    } catch (error) {
+      handleAxiosError(error);
+    }
+  }
+
+  export const joinPublic = async () => {
+    try {
+      await axios.patch('/channel/join-channel');
+    } catch (error) {
+      handleAxiosError(error);
+    }
+  }
+
+  export const joinProtected = async (password: string) => {
+    try {
+      await axios.patch('/channel/join-channel-protected', password);
     } catch (error) {
       handleAxiosError(error);
     }
