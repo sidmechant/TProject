@@ -24,6 +24,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 export class ChatGateway
   implements OnGatewayConnection, OnGatewayDisconnect {
     private readonly logger: Logger = new Logger('ChatGatway');
+
   @WebSocketServer()
   server: Server;
 
@@ -124,7 +125,11 @@ export class ChatGateway
 
   @OnEvent('message.send')
   handleMessageSend(channelName, message: string) {
-    this.server.to(channelName).emit('newMessage', message);
+    try {
+      this.server.to(channelName).emit('newMessage', message);
+    } catch (error) {
+      return ;
+    }
   }
 
   @OnEvent('message.create')

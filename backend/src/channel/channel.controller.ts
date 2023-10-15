@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, UseGuards, Param, Req, HttpException, HttpStatus, Logger, NotFoundException, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, UseGuards, Param, Req, HttpException, HttpStatus, Logger, NotFoundException, Delete, Patch } from '@nestjs/common';
 import { Socket } from 'socket.io';
 import { AuthUser } from 'src/jwt/auth-user.decorator';
 import { ChannelMembership, Message, Player, User } from '@prisma/client';
@@ -284,13 +284,30 @@ export class ChannelsController {
     }
   }
 
-  @Post('join-channel')
+  @Patch('join-channel')
   async joinChannel(@Body() joinChannelDto: JoinChannelDto): Promise<boolean> {
     try {
       const { userId, channelId } = joinChannelDto;
 
       //const updatedUser = await this.channelService.addChannelMembershipToUser(channelId, Number(userId));
       const updatedChannel = await this.channelService.addMemberToChannel(channelId, Number(userId));
+
+      if (!updatedChannel) {
+        throw new NotFoundException('User or channel not found.');
+      }
+      return true;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  @Patch('join-channel-protected')
+  async joinChannelProtected(@Body() joinChannelDto: JoinChannelDto): Promise<boolean> {
+    try {
+      const { userId, channelId, password } = joinChannelDto;
+
+      //const updatedUser = await this.channelService.addChannelMembershipToUser(channelId, Number(userId));
+      const updatedChannel = await this.channelService.addMemberToChannel(channelId, Number(userId), password);
 
       if (!updatedChannel) {
         throw new NotFoundException('User or channel not found.');
@@ -332,11 +349,10 @@ export class ChannelsController {
       }
   }
 
-  @UseGuards()
   @Post('send-message')
   async sendMessage(@Req() req, @Body() createMessageDto: CreateMessageDto): Promise<Message[] | null> {
     try {
-      createMessageDto.userId = req.userId; // Set userId property
+      createMessageDto.userId = req.userId;
       if (!createMessageDto.userId)
         throw new NotFoundException('User not found');
   

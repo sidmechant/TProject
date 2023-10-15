@@ -358,7 +358,52 @@ export class ChannelService {
     return channelSocketDto;
   }
 
-  async addMemberToChannel(channelId: string, userId: number): Promise<Channel> {
+  //async addMemberToChannel(channelId: string, userId: number): Promise<Channel> {
+  //  try {
+  //    const channel = await this.prisma.channel.findFirst({
+  //      where: {
+  //        id: channelId,
+  //      },
+  //      include: {
+  //        members: true,
+  //      },
+  //    });
+  //    if (!channel)
+  //      throw new Error('Canal non trouvé');
+
+  //    const isMember = channel.members.some((member) => member.userId === userId);
+  //    if (isMember)
+  //      throw new Error('Member not found ....');
+
+  //    const newMember = await this.prisma.channelMembership.create({
+  //      data: {
+  //        userId,
+  //        channelId,
+  //      },
+  //    });
+  //    channel.members.push(newMember);
+
+  //    const updatedChannel = await this.prisma.channel.update({
+  //      where: {
+  //        id: channelId,
+  //      },
+  //      data: {
+  //        members: {
+  //          set: channel.members,
+  //        },
+  //      },
+  //      include: {
+  //        members: true,
+  //      },
+  //    });
+
+  //    return updatedChannel;
+  //  } catch (error) {
+  //    return null;
+  //  }
+  //}
+
+  async addMemberToChannel(channelId: string, userId: number, password?: string): Promise<Channel> {
     try {
       const channel = await this.prisma.channel.findFirst({
         where: {
@@ -368,13 +413,18 @@ export class ChannelService {
           members: true,
         },
       });
+  
       if (!channel)
         throw new Error('Canal non trouvé');
-
+  
+      if (channel.password && password !== channel.password) {
+        throw new Error('Mot de passe incorrect');
+      }
+  
       const isMember = channel.members.some((member) => member.userId === userId);
       if (isMember)
-        throw new Error('Member not found ....');
-
+        throw new Error('Membre non trouvé');
+  
       const newMember = await this.prisma.channelMembership.create({
         data: {
           userId,
@@ -382,7 +432,7 @@ export class ChannelService {
         },
       });
       channel.members.push(newMember);
-
+  
       const updatedChannel = await this.prisma.channel.update({
         where: {
           id: channelId,
@@ -396,12 +446,13 @@ export class ChannelService {
           members: true,
         },
       });
-
+  
       return updatedChannel;
     } catch (error) {
       return null;
     }
   }
+  
 
   async removeMemberFromChannel(channelId: string, userId: number): Promise<Channel | null> {
     try {
