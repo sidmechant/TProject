@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, UseGuards, Param, Req, HttpException, Http
 import { Socket } from 'socket.io';
 import { AuthUser } from 'src/jwt/auth-user.decorator';
 import { ChannelMembership, Message, User } from '@prisma/client';
-import { CreateChannelDto, GetChannelDto } from '../dto/channel.dto';
+import { CreateChannelDto, GetChannelDto, JoinChannelDto } from '../dto/channel.dto';
 import { SkipThrottle } from '@nestjs/throttler';
 import { JwtAuthGuard } from 'src/auth/jwt.guard';
 import { EventEmitter2 } from '@nestjs/event-emitter';
@@ -111,6 +111,8 @@ export class ChannelsController {
       }
     }
   }
+
+
 
   @Delete('remove-member-channel')
   async removeMemberFromChannel(@Body() getChannelDto: GetChannelDto): Promise<{ statusCode: number; message: string; isSuccess: boolean }> {
@@ -233,7 +235,7 @@ export class ChannelsController {
   }
 
   @Get('all_from_id')
-  async getAllUserChannel(@Req() req): Promise<ChannelMembership[] | null> {
+  async getAllUserChannel(@Req() req): Promise<{ statusCode: number, message: any, isSuccess: boolean }> {
     try {
       const user = await this.prisma.user.findFirst({
         where: {
@@ -244,13 +246,58 @@ export class ChannelsController {
         },
       });
 
-      console.log("debug all_from_id", user?.channels);
-      return user?.channels || null;
+      console.log(`user ${user.username} debug all_from_id `, user?.channels);
+        return {
+          statusCode: HttpStatus.OK,
+          message: user.channels,
+          isSuccess: true
+        };
     } catch (error) {
-      console.error(error);
-      throw new Error('Une erreur s\'est produite lors de la récupération des canaux de l\'utilisateur.');
+      if (error instanceof HttpException) {
+        return {
+          statusCode: error.getStatus(),
+          message: error.message,
+          isSuccess: false
+        };
+      } return {
+        statusCode: HttpStatus.BAD_REQUEST,
+        message: 'Bad request',
+        isSuccess: false
+      }
     }
   }
 
-  
+
+  @Post('join-channel')
+async joinChannel(@Body() joinChannelDto: JoinChannelDto): Promise<{ statusCode: number, message: string, isSuccess: boolean }> {
+  try {
+    const { userId, channelId } = joinChannelDto;
+
+    const updatedUser = await this.channelService.addChannelMembershipToUser(channelId, Number(userId));
+    const updatedChannel = await this.channelService.addMemberToChannel(channelId, Number(userId));
+
+    if (!updatedUser || !updatedChannel) {
+      throw new NotFoundException('User or channel not found.');
+    }
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'User joined the channel successfully.',
+      isSuccess: true,
+    };
+  } catch (error) {
+    if (error instanceof HttpException) {
+      return {
+        statusCode: error.getStatus(),
+        message: error.message,
+        isSuccess: false
+      };
+    } return {
+      statusCode: HttpStatus.BAD_REQUEST,
+      message: 'Bad request',
+      isSuccess: false
+    };
+  }
+}
+
 }
