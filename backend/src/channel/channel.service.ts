@@ -2,7 +2,7 @@ import { Injectable, ConflictException, BadRequestException, NotFoundException, 
 import * as bcrypt from 'bcrypt';
 import { CreateChannelDto, UpdateChannelDto, SearchChannelByNameDto, UpdateChannelByNameDto, CreateMessageDto } from '../dto/channel.dto';
 import { PrismaService } from '../../prisma/prisma.service'
-import { PrismaClient, Channel, ChannelMembership, Prisma, Message, Player, User, User } from '@prisma/client'
+import { PrismaClient, Channel, ChannelMembership, Prisma, Message, Player, User } from '@prisma/client'
 import { channel } from 'diagnostics_channel';
 import { randomBytes, createCipheriv, createDecipheriv, scrypt } from 'crypto';
 import { GetChannelDto } from 'src/dto/channel.dto';

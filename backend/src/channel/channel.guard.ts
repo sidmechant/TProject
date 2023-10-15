@@ -31,7 +31,8 @@ import {
       }
   
       // Otherwise, check if they are a moderator (ADMIN role) in ChannelMembership
-      const channelMembership = await this.channelService.findMembershipForUserInChannel(userId, channelId);
+      //const channelMembership = await this.channelService.findMembershipForUserInChannel(userId, channelId);
+      const channelMembership = null; //tmp fix
       
       if (channelMembership && channelMembership.role === ChannelRole.ADMIN) {
         return true;

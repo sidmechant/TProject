@@ -252,7 +252,7 @@ export class ChannelsController {
     return userId;
   }
 
-  @Post(':channelId/admin/:pseudo')
+ /* @Post(':channelId/admin/:pseudo')
   @UseGuards(RolesGuard)
   async setAdmin(@Req() req, @Param('channelId') channelId: string, @Param('pseudo') pseudo: string) {
     const actingUserId = req.userId;
@@ -306,7 +306,7 @@ export class ChannelsController {
      return ;
     }
   }
-
+*/
   @Get('all_from_id')
   async getAllUserChannelWithMembers(@Req() req): Promise<{ channelId: string, channelName: string, ownerId: number, players: Player[] }[]> {
     try {
