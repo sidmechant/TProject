@@ -401,7 +401,6 @@ export class ChannelService {
       return null;
     }
   }
-   
 
   async removeMemberFromChannel(channelId: string, userId: number): Promise<Channel | null> {
     try {
@@ -533,8 +532,6 @@ export class ChannelService {
       return null;
     }
   }
-
-
 
   //async listChannelsByUserId(userId: number): Promise<Channel[] | null> {
   //  try {
@@ -746,5 +743,62 @@ export class ChannelService {
     }
   }
   
-  
+  async removeChannelMembershipToUser(channelId: string, userId: number): Promise<boolean> {
+    try {
+      const channelMembership = await this.prisma.channelMembership.findFirst({
+        where: {
+          userId,
+          channelId,
+        },
+      });
+
+      if (!channelMembership) {
+        return false;
+      }
+
+      await this.prisma.channelMembership.delete({
+        where: {
+          id: channelMembership.id,
+        },
+      });
+
+      return true;
+    } catch (error) {
+      throw new error;
+    }
+  } 
+
+  async removeMemberToChannel(channelId: string, userId: number): Promise<ChannelMembership | null> {
+    try {
+      const channel = await this.prisma.channel.findFirst({
+        where: {
+          id: channelId,
+        },
+      });
+      if (!channel) {
+        throw new NotFoundException('Channel not found.');
+      }
+
+      const membership = await this.prisma.channelMembership.findFirst({
+        where: {
+          channelId,
+          userId,
+        },
+      });
+      if (!membership) {
+        throw new NotFoundException('User is not a member of the channel.');
+      }
+
+      await this.prisma.channelMembership.delete({
+        where: {
+          id: membership.id,
+        },
+      });
+
+      return membership || null;
+    } catch (error) {
+        throw new error;
+    } 
+  }
+
 } 
