@@ -323,10 +323,11 @@ export class ChannelsController {
   }
 
   @Post('leave-channel')
-  async leaveChannel(@Body() joinChannelDto: JoinChannelDto): Promise<boolean> {
+  async leaveChannel(@Req() req, @Body() joinChannelDto: JoinChannelDto): Promise<boolean> {
     try {
-      const { userId, channelId } = joinChannelDto;
+      const { channelId } = joinChannelDto;
 
+      const userId: number = req.userId;
       //const isMemberRemoved = await this.channelService.removeMemberToChannel(channelId, Number(userId));
       const isMembershipRemoved = await this.channelService.removeChannelMembershipToUser(channelId, Number(userId));
 
