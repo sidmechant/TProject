@@ -40,7 +40,7 @@ export class ChannelsController {
     this.logger.debug(`EntryPoint begin try ${createChannelDto}`);
     try {
       this.logger.debug(`entryPoint`);
-      createChannelDto.ownerId = Number(req.user.id);
+      createChannelDto.ownerId = Number(req.userId);
       this.logger.debug(`DATA name:
         ${createChannelDto.name}
         ownerId: ${createChannelDto.ownerId}
@@ -237,7 +237,7 @@ export class ChannelsController {
     try {
       const user = await this.prisma.user.findFirst({
         where: {
-          id: Number(req.user.id),
+          id: Number(req.userId),
         },
         include: {
           channels: true,
