@@ -1,4 +1,4 @@
-import { IsEmpty, IsString, isEmpty } from "class-validator";
+import { IsEmpty, IsNotEmpty, IsString, isEmpty } from "class-validator";
 
 export class CreateChannelDto {
     @IsString()
@@ -53,35 +53,30 @@ export class GetChannelDto {
 }
 
 export class CreateMessageDto {
-    @IsEmpty()
     @IsString()
     readonly content: string;
   
-    @IsEmpty()
     @IsString()
     readonly channelId: string;
   
-    @IsEmpty()
     @IsString()
     readonly channelName?: string;
-    
-    @IsEmpty()
+
     @IsString()
     userId: string;
     
-    @IsEmpty()
     @IsString()
     readonly recepient?: string;
   }
 
   export class JoinChannelDto { 
-    @IsEmpty()
+    @IsNotEmpty()
     @IsString()
     channelId: string;
   }
   
   export class JoinChannelProtectedDto { 
-    @IsEmpty()
+    @IsNotEmpty()
     @IsString()
     channelId: string;
 
