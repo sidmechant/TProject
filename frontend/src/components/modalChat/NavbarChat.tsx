@@ -46,9 +46,9 @@ function ButtonConversation({onClick, message, id, icon}: ConversationProps) {
 		id={id}
 		key={id}
 		onClick={onClick}
-		className='hover:bg-white/10 h-10 min-h-[4rem] w-[96%] mx-1 bg-white/20 border border-1 mt-4 flex items-center justify-center text-white'>
-			{icon}
-			{message}
+		className='hover:bg-white/10 h-10 min-h-[4rem] w-[96%] mx-1 bg-white/20 border border-1 mt-4 flex items-center justify-evenly text-white'>
+			<div>{icon}</div>
+			<div>{message}</div>
 		</button>
 	)
 }
