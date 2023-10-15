@@ -236,9 +236,11 @@ const acceptFriendRequest = async (requesterId : any) => {
     }
   }
 
-  export const getMyChannels = async (userId: number) => {
+  export const getMyChannels = async () => {
     try {
-      const response = await axios.get(`/channels/channel/${userId}`);
+      const response = await axios.get('/channel/all_from_id');
+
+      console.log("GETALL MY CHANNELS: ", response);
       return response.data;
     } catch (error) {
       handleAxiosError(error);
