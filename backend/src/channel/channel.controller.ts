@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, UseGuards, Param, Req, HttpException, Http
 import { Socket } from 'socket.io';
 import { AuthUser } from 'src/jwt/auth-user.decorator';
 import { ChannelMembership, Message, User } from '@prisma/client';
-import { CreateChannelDto, GetChannelDto } from '../dto/channel.dto';
+import { CreateChannelDto, GetChannelDto, JoinChannelDto } from '../dto/channel.dto';
 import { SkipThrottle } from '@nestjs/throttler';
 import { JwtAuthGuard } from 'src/auth/jwt.guard';
 import { EventEmitter2 } from '@nestjs/event-emitter';
@@ -12,7 +12,8 @@ import { request } from 'express';
 import { ChannelSocketDto } from 'src/dto/chat.dto';
 import { error } from 'console';
 import { ChatGateway } from 'src/chat/chat.gateway';
-import { RolesGuard } from './channel.guard';
+import { RolesGuard } from './channel.guard';import { PrismaService } from 'prisma/prisma.service';
+
 
 @SkipThrottle()
 @Controller('channel')
@@ -23,8 +24,9 @@ export class ChannelsController {
   constructor(
     private readonly events: EventEmitter2,
     private readonly channelService: ChannelService,
-    private readonly chatGateway: ChatGateway
-  ) {}
+    private readonly chatGateway: ChatGateway,
+    private readonly prisma: PrismaService
+  ) { }
 
   @Get('test')
   test() {
@@ -38,7 +40,7 @@ export class ChannelsController {
     this.logger.debug(`EntryPoint begin try ${createChannelDto}`);
     try {
       this.logger.debug(`entryPoint`);
-      createChannelDto.ownerId = Number(req.user.id);
+      createChannelDto.ownerId = Number(req.userId);
       this.logger.debug(`DATA name:
         ${createChannelDto.name}
         ownerId: ${createChannelDto.ownerId}
@@ -48,7 +50,7 @@ export class ChannelsController {
 
       const newChannel: Channel | null = await this.channelService.createChannel(createChannelDto);
       if (!newChannel)
-        throw error();      
+        throw error();
       this.logger.debug(`Channel created ${newChannel}`);
 
       const channelSocketDto: ChannelSocketDto = await this.channelService.getChannelSocketDtoByChannel(newChannel);
@@ -68,9 +70,9 @@ export class ChannelsController {
       this.logger.error(`Error ${error.message}`);
       if (error instanceof HttpException) {
         return {
-            statusCode: error.getStatus(),
-            message: error.message,
-            isSuccess: false
+          statusCode: error.getStatus(),
+          message: error.message,
+          isSuccess: false
         };
       } return {
         statusCode: HttpStatus.BAD_REQUEST,
@@ -98,9 +100,9 @@ export class ChannelsController {
     } catch (error) {
       if (error instanceof HttpException) {
         return {
-            statusCode: error.getStatus(),
-            message: error.message,
-            isSuccess: false
+          statusCode: error.getStatus(),
+          message: error.message,
+          isSuccess: false
         };
       } return {
         statusCode: HttpStatus.BAD_REQUEST,
@@ -109,6 +111,8 @@ export class ChannelsController {
       }
     }
   }
+
+
 
   @Delete('remove-member-channel')
   async removeMemberFromChannel(@Body() getChannelDto: GetChannelDto): Promise<{ statusCode: number; message: string; isSuccess: boolean }> {
@@ -127,9 +131,9 @@ export class ChannelsController {
     } catch (error) {
       if (error instanceof HttpException) {
         return {
-            statusCode: error.getStatus(),
-            message: error.message,
-            isSuccess: false
+          statusCode: error.getStatus(),
+          message: error.message,
+          isSuccess: false
         };
       } return {
         statusCode: HttpStatus.BAD_REQUEST,
@@ -155,10 +159,10 @@ export class ChannelsController {
     } catch (error) {
       if (error instanceof HttpException) {
         return {
-            statusCode: error.getStatus(),
-            message: error.message,
-            isSuccess: false,
-            members: [],
+          statusCode: error.getStatus(),
+          message: error.message,
+          isSuccess: false,
+          members: [],
         };
       } return {
         statusCode: HttpStatus.BAD_REQUEST,
@@ -186,10 +190,10 @@ export class ChannelsController {
     } catch (error) {
       if (error instanceof HttpException) {
         return {
-            statusCode: error.getStatus(),
-            message: error.message,
-            isSuccess: false,
-            messages: [],
+          statusCode: error.getStatus(),
+          message: error.message,
+          isSuccess: false,
+          messages: [],
         };
       } return {
         statusCode: HttpStatus.BAD_REQUEST,
@@ -218,9 +222,9 @@ export class ChannelsController {
     } catch (error) {
       if (error instanceof HttpException) {
         return {
-            statusCode: error.getStatus(),
-            message: error.message,
-            isSuccess: false
+          statusCode: error.getStatus(),
+          message: error.message,
+          isSuccess: false
         };
       } return {
         statusCode: HttpStatus.BAD_REQUEST,
@@ -302,4 +306,103 @@ export class ChannelsController {
      return ;
     }
   }
+
+  @Get('all_from_id')
+  async getAllUserChannel(@Req() req): Promise<{ statusCode: number, message: any, isSuccess: boolean }> {
+    try {
+      const user = await this.prisma.user.findFirst({
+        where: {
+          id: Number(req.userId),
+        },
+        include: {
+          channels: true,
+        },
+      });
+
+      console.log(`user ${user.username} debug all_from_id `, user?.channels);
+        return {
+          statusCode: HttpStatus.OK,
+          message: user.channels,
+          isSuccess: true
+        };
+    } catch (error) {
+      if (error instanceof HttpException) {
+        return {
+          statusCode: error.getStatus(),
+          message: error.message,
+          isSuccess: false
+        };
+      } return {
+        statusCode: HttpStatus.BAD_REQUEST,
+        message: 'Bad request',
+        isSuccess: false
+      }
+    }
+  }
+
+@Post('join-channel')
+async joinChannel(@Body() joinChannelDto: JoinChannelDto): Promise<{ statusCode: number, message: string, isSuccess: boolean }> {
+  try {
+    const { userId, channelId } = joinChannelDto;
+
+    const updatedUser = await this.channelService.addChannelMembershipToUser(channelId, Number(userId));
+    const updatedChannel = await this.channelService.addMemberToChannel(channelId, Number(userId));
+
+    if (!updatedUser || !updatedChannel) {
+      throw new NotFoundException('User or channel not found.');
+    }
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'User joined the channel successfully.',
+      isSuccess: true,
+    };
+  } catch (error) {
+    if (error instanceof HttpException) {
+      return {
+        statusCode: error.getStatus(),
+        message: error.message,
+        isSuccess: false
+      };
+    } return {
+      statusCode: HttpStatus.BAD_REQUEST,
+      message: 'Bad request',
+      isSuccess: false
+    };
+  }
+}
+
+@Post('leave-channel')
+async leaveChannel(@Body() joinChannelDto: JoinChannelDto): Promise<{ statusCode: number, message: string, isSuccess: boolean }> {
+  try {
+    const { userId, channelId } = joinChannelDto;
+
+    const isMemberRemoved = await this.channelService.removeMemberToChannel(channelId, Number(userId));
+    const isMembershipRemoved = await this.channelService.removeChannelMembershipToUser(channelId, Number(userId));
+
+    if (!isMemberRemoved || !isMembershipRemoved) {
+      throw new NotFoundException('User or channel not found.');
+    }
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'User left the channel successfully.',
+      isSuccess: true,
+    };
+  } catch (error) {
+    if (error instanceof HttpException) {
+      return {
+        statusCode: error.getStatus(),
+        message: error.message,
+        isSuccess: false
+      };
+    } return {
+      statusCode: HttpStatus.BAD_REQUEST,
+      message: 'Bad request',
+      isSuccess: false
+    };
+  }
+}
+
+
 }

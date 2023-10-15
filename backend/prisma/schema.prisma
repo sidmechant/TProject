@@ -108,6 +108,7 @@ model Message {
   channel   Channel   @relation(fields: [channelId], references: [id])
   userId    Int
   user      User      @relation(fields: [userId], references: [id])
+
 }
 
 // Table de jonction pour la relation plusieurs à plusieurs entre User et Channel

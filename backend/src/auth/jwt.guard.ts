@@ -60,7 +60,7 @@ export class JwtAuthGuard implements CanActivate {
         throw new UnauthorizedException('Logged in from another session');
       }
 
-      //request.user = user;
+      request.user = user;
       request.userId = decoded.sub;
       this.logger.debug(`JWT FINISH user : ${user.id} ${request.id}`);
       return true;

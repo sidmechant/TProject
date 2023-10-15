@@ -71,9 +71,11 @@ const acceptFriendRequest = async (requesterId : any) => {
     }
   }
 
-  const deleteFriend = async (requesterId : any) => {
+  const deleteFriend = async (targetId : number) => {
     try {
-
+      console.log("Delete id: ", targetId);
+      const response = await axios.patch('/friends/delete', {targetId});
+      return response.data;
     } catch (error) {
       handleAxiosError(error);
     }
@@ -236,14 +238,17 @@ const acceptFriendRequest = async (requesterId : any) => {
     }
   }
 
-  export const getMyChannels = async (userId: number) => {
+  export const getMyChannels = async () => {
     try {
-      const response = await axios.get(`/channels/${userId}`);
+      const response = await axios.get('/channel/all_from_id');
+
+      console.log("GETALL MY CHANNELS: ", response);
       return response.data;
     } catch (error) {
       handleAxiosError(error);
     }
   }
+
   
   export {
     sendFriendRequest,

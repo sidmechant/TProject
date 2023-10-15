@@ -154,4 +154,18 @@ export class UsersService {
         }
       }
 
+      async ifUserExistsByUserId(userId: number): Promise<boolean> {
+        try {
+          const user = await this.prisma.user.findUnique({
+            where: {
+              id: userId,
+            },
+          });
+   
+          return !!user; // Renvoie true si l'utilisateur existe, sinon false
+        } catch (error) {
+          return null;
+        }
+      }
+
 }

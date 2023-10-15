@@ -51,3 +51,31 @@ export class GetChannelDto {
     @IsString()
     ownerId?: string;
 }
+
+export class CreateMessageDto {
+    @IsEmpty()
+    @IsString()
+    readonly content: string;
+  
+    @IsEmpty()
+    @IsString()
+    readonly channelId: string;
+  
+    @IsEmpty()
+    @IsString()
+    userId: string;
+    
+    @IsEmpty()
+    @IsString()
+    readonly recepient?: string;
+  }
+
+  export class JoinChannelDto {
+    @IsEmpty()
+    @IsString()
+    userId: string;
+  
+    @IsEmpty()
+    @IsString()
+    channelId: string;
+  }

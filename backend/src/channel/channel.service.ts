@@ -1,8 +1,8 @@
-import { Injectable, ConflictException, BadRequestException, NotFoundException, HttpException, HttpStatus, Logger } from '@nestjs/common';
+import { Injectable, ConflictException, BadRequestException, NotFoundException, HttpException, HttpStatus, Logger, Req } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
-import { CreateChannelDto, UpdateChannelDto, SearchChannelByNameDto, UpdateChannelByNameDto } from '../dto/channel.dto';
+import { CreateChannelDto, UpdateChannelDto, SearchChannelByNameDto, UpdateChannelByNameDto, CreateMessageDto } from '../dto/channel.dto';
 import { PrismaService } from '../../prisma/prisma.service'
-import { PrismaClient, Channel, ChannelMembership, Prisma, Message, Player, User } from '@prisma/client'
+import { PrismaClient, Channel, ChannelMembership, Prisma, Message, Player, User, User } from '@prisma/client'
 import { channel } from 'diagnostics_channel';
 import { randomBytes, createCipheriv, createDecipheriv, scrypt } from 'crypto';
 import { GetChannelDto } from 'src/dto/channel.dto';
@@ -137,6 +137,9 @@ export class ChannelService {
           password: hashedPassword
         }
       });
+
+      this.addMemberToChannel(channel.id, channel.ownerId);
+      this.addChannelMembershipToUser(channel.id, channel.ownerId);
       if (channel) return channel;
       throw new HttpException("cannal don't create", HttpStatus.NOT_IMPLEMENTED)
     } catch (error) {
@@ -368,26 +371,33 @@ export class ChannelService {
       });
       if (!channel)
         throw new Error('Canal non trouvé');
-
+  
       const isMember = channel.members.some((member) => member.userId === userId);
       if (isMember)
         throw new Error('Member not found ....');
-
+  
+      const newMember = await this.prisma.channelMembership.create({
+        data: {
+          userId,
+          channelId,
+        },
+      });
+      channel.members.push(newMember);
+  
       const updatedChannel = await this.prisma.channel.update({
         where: {
           id: channelId,
         },
         data: {
           members: {
-            create: {
-              userId,
-            },
+            set: channel.members,
           },
         },
         include: {
           members: true,
         },
       });
+  
       return updatedChannel;
     } catch (error) {
       return null;
@@ -489,7 +499,7 @@ export class ChannelService {
       return null;
     }
   }
-  
+
   async removeMessageChannelByMessageId(messageId: string): Promise<void> {
     try {
       const message = await this.prisma.message.findUnique({
@@ -525,6 +535,273 @@ export class ChannelService {
     }
   }
 
+  //async listChannelsByUserId(userId: number): Promise<Channel[] | null> {
+  //  try {
+  //    const userWithChannels = await this.prisma.user.findUnique  ({
+  //      where: {
+  //        id: userId,
+  //      },
+  //      include: {
+  //        channels: {
+  //          include: {
+  //            channel: true,
+  //          },
+  //        },
+  //      },
+  //    });
+
+  //    if (!userWithChannels) {
+  //      throw new Error('Utilisateur non trouvé');
+  //    }
+  //    if (userWithChannels.channels)
+  //      return userWithChannels.channels;
+  //    return null;
+  //  } catch (error) {
+  //    console.error(error);
+  //    throw new Error('Une erreur s\'est produite lors de la récupération des canaux de l\'utilisateur.');
+  //  }
+  //}
+
+  async getMessagesForChannel(channelId: string): Promise<Message[] | null> {
+    try {
+      const messages = await this.prisma.message.findMany({
+        where: {
+          channelId: channelId,
+        },
+      });
+      if (messages) return messages;
+      return null;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  async sendMessageToUserByUserId(senderId: number, receiverId: number, messageContent: string): Promise<void> {
+    try {
+      const sender = await this.userService.ifUserExistsByUserId(senderId);
+      const receiver = await this.userService.ifUserExistsByUserId(receiverId);
+      if (!sender || !receiver) {
+        throw new Error('Sender or receiver not found');
+      }
+
+      let channel: Channel | null = await this.ifChannelExistsByName(`channel_${senderId}_${receiverId}`) as Channel | null;
+      if (!channel) {
+        channel = await this.createPrivateChannel(senderId, receiverId);
+        if (!channel) {
+          throw new Error('Channel creation failed');
+        }
+      }
+
+      const createMessageDto: CreateMessageDto = {
+        content: messageContent,
+        userId: senderId.toString(),
+        channelId: channel.id,
+      };
+      const message: Message | null = await this.createMessageUnique(createMessageDto);
+      if (!message) {
+        throw new Error('Message creation failed');
+      }
+      
+      const messages: Message[] | null = await this.getMessagesForChannel(channel.id);
+      if (messages) {
+        throw new Error('Messages not found');
+      }
+        messages.push(message);
+
+        await this.prisma.channel.update({
+          where: {
+            id: channel.id,
+          },
+          data: {
+            messages: {
+              set: messages,
+            },
+          },
+          include: {
+            members: true,
+            messages: true,
+          },
+        });
+
+    } catch (error) {
+      console.error(error);
+      throw new Error('An error occurred while sending the message.');
+    }
+  }
+
+
+  async ifChannelExistsByName(name: string): Promise<Channel | null> {
+    try {
+      const channel = await this.prisma.channel.findUnique({
+        where: {
+          name,
+        },
+        include: {
+          messages: true,
+          members: false,
+        },
+      });
+      return channel || null;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  async createPrivateChannel(senderId: number, receiverId: number): Promise<Channel | null> {
+    try {
+      const channel = await this.prisma.channel.create({
+        data: {
+          name: `Private_${senderId}_${receiverId}`,
+          type: 'private',
+          ownerId: senderId,
+          members: {
+            create: [
+              {
+                userId: senderId,
+              },
+              {
+                userId: receiverId,
+              },
+            ],
+          },
+        },
+        include: {
+          members: true,
+          messages: true,
+        },
+      });
+
+      return channel || null;
+    } catch (error) {
+      console.error(error);
+      throw new Error('Conversation creation failed');
+    }
+  }
+
+  async createMessageUnique(createMessageDto: CreateMessageDto): Promise<Message | null> {
+    try {
+      const message = await this.prisma.message.create({
+        data: {
+          content: createMessageDto.content,
+          channelId: createMessageDto.channelId,
+          userId: Number(createMessageDto.userId),
+        },
+      });
+      return message || null;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  async addChannelMembershipToUser(channelId: string, userId: number): Promise<User | null> {
+    try {
+      const user = await this.prisma.user.findUnique({
+        where: {
+          id: userId,
+        },
+        include: {
+          channels: true,
+        },
+      }); 
+      if (!user) {
+        throw new Error('User not found');
+      }
+  
+      const channel = await this.prisma.channel.findUnique({
+        where: {
+          id: channelId,
+        },
+      }); 
+      if (!channel) {
+        throw new Error('Channel not found');
+      }
+  
+      const newChannelMembership = await this.prisma.channelMembership.create({
+        data: {
+          userId,
+          channelId,
+        },
+      }); 
+      const updatedUser = await this.prisma.user.update({
+        where: {
+          id: userId,
+        },
+        data: {
+          channels: {
+            connect: {
+              id: newChannelMembership.id,
+            },
+          },
+        },
+        include: {
+          channels: true,
+        },
+      }); 
+
+      return updatedUser || null;
+    } catch (error) {
+      console.error(error);
+      return null;
+    }
+  }
+  
+  async removeChannelMembershipToUser(channelId: string, userId: number): Promise<boolean> {
+    try {
+      const channelMembership = await this.prisma.channelMembership.findFirst({
+        where: {
+          userId,
+          channelId,
+        },
+      });
+
+      if (!channelMembership) {
+        return false;
+      }
+
+      await this.prisma.channelMembership.delete({
+        where: {
+          id: channelMembership.id,
+        },
+      });
+
+      return true;
+    } catch (error) {
+      throw new error;
+    }
+  } 
+
+  async removeMemberToChannel(channelId: string, userId: number): Promise<ChannelMembership | null> {
+    try {
+      const channel = await this.prisma.channel.findFirst({
+        where: {
+          id: channelId,
+        },
+      });
+      if (!channel) {
+        throw new NotFoundException('Channel not found.');
+      }
+
+      const membership = await this.prisma.channelMembership.findFirst({
+        where: {
+          channelId,
+          userId,
+        },
+      });
+      if (!membership) {
+        throw new NotFoundException('User is not a member of the channel.');
+      }
+
+      await this.prisma.channelMembership.delete({
+        where: {
+          id: membership.id,
+        },
+      });
+
+      return membership || null;
+    } catch (error) {
+        throw new error;
+    } 
+  }
   async findUserIdByPseudo(pseudo: string): Promise<number> {
     const player = await this.prisma.player.findFirst({
       where: { pseudo: pseudo },

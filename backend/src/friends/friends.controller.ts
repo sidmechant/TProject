@@ -137,6 +137,14 @@ async searchPseudo(@Req() req, @Query('pseudo') pseudoToSearch: string): Promise
   }
 
 
+  @UseGuards(JwtAuthGuard)
+  @Patch('delete')
+  async deleteFriend(@Req() req, @Body() targetId: any): Promise<Friend> {
+    
+    console.log("chacal id: ", targetId.targetId);
+    const id = targetId.targetId;
+    return await this.friendsService.deleteFriend(id, Number(req.userId));
+  }
 
   @UseGuards(JwtAuthGuard)
   @Get('friends-online')

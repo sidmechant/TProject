@@ -56,9 +56,9 @@ export default function NavbarChat({selectedChat, setSelectedChat}: ChatProps) {
 	useEffect(() => {
 
 		const getMyChannels = async () => {
-			const fetchedMyChannels : Channel[] = await API.getMyChannels(myUser.id); //tmp value need real userId
-
-			return fetchedMyChannels;
+			const fetchedMyChannels : any = await API.getMyChannels(); //tmp value need real userId
+			console.log("FETCHED: ", fetchedMyChannels.message);
+			return fetchedMyChannels?.message;
 		}
 
 		getMyChannels().then((result) => {

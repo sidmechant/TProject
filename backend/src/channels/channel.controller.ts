@@ -200,7 +200,7 @@ export class ChannelController {
   //@UseGuards(JwtAuthGuard)
   async getChannelsByUser(@Param('id') userId: string, @Req() request: any): Promise<any> {
     try {
-      //console.log("je suis dans getChannelsByUser");
+      console.log("je suis dans getChannelsByUser");
       // const id = Number(request.id);
       const id: number = Number(userId); 
       const channels: Channel[] = await this.channelService.getChannelsByUserId(id);
