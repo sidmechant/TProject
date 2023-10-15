@@ -223,7 +223,12 @@ function FindConversation({user}: userProps) {
 					<Button colorScheme='pink' mr={3} onClick={onClose}>
 					Close
 					</Button>
-					<Button colorScheme='gray'>Join Channel</Button>
+					<Button colorScheme='gray' onClick={() => {
+						if (modal.type === 'protected')
+							submitProtected();
+						else
+							submitPublic();
+					}}>Join Channel</Button>
 				</ModalFooter>
 				</ModalContent>
 				</Modal>
