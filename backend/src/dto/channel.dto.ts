@@ -74,15 +74,17 @@ export class CreateMessageDto {
     readonly recepient?: string;
   }
 
-  export class JoinChannelDto {
+  export class JoinChannelDto { 
     @IsEmpty()
     @IsString()
-    userId?: string;
+    channelId: string;
+  }
   
+  export class JoinChannelProtectedDto { 
     @IsEmpty()
     @IsString()
     channelId: string;
 
     @IsString()
-    password?: string;
+    password: string;
   }
