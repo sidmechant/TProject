@@ -136,7 +136,7 @@ export class ChannelService {
         }
       });
 
-      this.addMemberToChannel(channel.id, channel.ownerId);
+      //this.addMemberToChannel(channel.id, channel.ownerId);
       this.addChannelMembershipToUser(channel.id, channel.ownerId);
       if (channel) return channel;
       throw new HttpException("cannal don't create", HttpStatus.NOT_IMPLEMENTED)
@@ -370,11 +370,11 @@ export class ChannelService {
       });
       if (!channel)
         throw new Error('Canal non trouvé');
-  
+
       const isMember = channel.members.some((member) => member.userId === userId);
       if (isMember)
         throw new Error('Member not found ....');
-  
+
       const newMember = await this.prisma.channelMembership.create({
         data: {
           userId,
@@ -382,7 +382,7 @@ export class ChannelService {
         },
       });
       channel.members.push(newMember);
-  
+
       const updatedChannel = await this.prisma.channel.update({
         where: {
           id: channelId,
@@ -396,7 +396,7 @@ export class ChannelService {
           members: true,
         },
       });
-  
+
       return updatedChannel;
     } catch (error) {
       return null;
@@ -600,27 +600,27 @@ export class ChannelService {
       if (!message) {
         throw new Error('Message creation failed');
       }
-      
+
       const messages: Message[] | null = await this.getMessagesForChannel(channel.id);
       if (messages) {
         throw new Error('Messages not found');
       }
-        messages.push(message);
+      messages.push(message);
 
-        await this.prisma.channel.update({
-          where: {
-            id: channel.id,
+      await this.prisma.channel.update({
+        where: {
+          id: channel.id,
+        },
+        data: {
+          messages: {
+            set: messages,
           },
-          data: {
-            messages: {
-              set: messages,
-            },
-          },
-          include: {
-            members: true,
-            messages: true,
-          },
-        });
+        },
+        include: {
+          members: true,
+          messages: true,
+        },
+      });
 
     } catch (error) {
       console.error(error);
@@ -701,26 +701,26 @@ export class ChannelService {
         include: {
           channels: true,
         },
-      }); 
+      });
       if (!user) {
         throw new Error('User not found');
       }
-  
+
       const channel = await this.prisma.channel.findUnique({
         where: {
           id: channelId,
         },
-      }); 
+      });
       if (!channel) {
         throw new Error('Channel not found');
       }
-  
+
       const newChannelMembership = await this.prisma.channelMembership.create({
         data: {
           userId,
           channelId,
         },
-      }); 
+      });
       const updatedUser = await this.prisma.user.update({
         where: {
           id: userId,
@@ -735,7 +735,7 @@ export class ChannelService {
         include: {
           channels: true,
         },
-      }); 
+      });
 
       return updatedUser || null;
     } catch (error) {
@@ -743,7 +743,7 @@ export class ChannelService {
       return null;
     }
   }
-  
+
   async removeChannelMembershipToUser(channelId: string, userId: number): Promise<boolean> {
     try {
       const channelMembership = await this.prisma.channelMembership.findFirst({
@@ -767,7 +767,7 @@ export class ChannelService {
     } catch (error) {
       throw new error;
     }
-  } 
+  }
 
   async removeMemberToChannel(channelId: string, userId: number): Promise<ChannelMembership | null> {
     try {
@@ -798,8 +798,38 @@ export class ChannelService {
 
       return membership || null;
     } catch (error) {
-        throw new error;
-    } 
+      throw new error;
+    }
   }
+
+ 
+  async getAvailableChannelsForUser(userId: number): Promise<Channel[]> {
+    try {
+        const availableChannels = await this.prisma.channel.findMany({
+            where: {
+                NOT: {
+                    members: {
+                        some: {
+                            userId: userId
+                        }
+                    }
+                },
+                type: {
+                    not: "PRIVATE"
+                }
+            },
+            include: {
+                members: true,
+                messages: true
+            }
+        });
+        return availableChannels;
+    } catch (error) {
+        console.error('Error fetching available channels:', error);
+        throw error;
+    }
+}
+
+  
 
 } 

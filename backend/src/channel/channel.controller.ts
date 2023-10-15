@@ -112,8 +112,6 @@ export class ChannelsController {
     }
   }
 
-
-
   @Delete('remove-member-channel')
   async removeMemberFromChannel(@Body() getChannelDto: GetChannelDto): Promise<{ statusCode: number; message: string; isSuccess: boolean }> {
     try {
@@ -267,13 +265,13 @@ export class ChannelsController {
         };
       });
 
-      return formattedChannels; 
+      return formattedChannels;
     } catch (error) {
       if (error instanceof HttpException) {
         return null;
       }
     }
-}
+  }
 
 
   @Post('join-channel')
@@ -340,5 +338,19 @@ export class ChannelsController {
     }
   }
 
+  @Get('available-channels')
+  async getAvailableChannels(@Req() req): Promise<Channel[] | null> {
+      try {
+          const userId = Number(req.userId); 
+          const channels = await this.channelService.getAvailableChannelsForUser(userId);
+          if (!channels || channels.length === 0) {
+            throw new Error();
+          }
+          return channels;   
+      } catch (error) {
+        return null;
+      }
+  }
+  
 
 }
