@@ -63,6 +63,10 @@ export class CreateMessageDto {
   
     @IsEmpty()
     @IsString()
+    readonly channelName?: string;
+    
+    @IsEmpty()
+    @IsString()
     userId: string;
     
     @IsEmpty()
@@ -73,9 +77,12 @@ export class CreateMessageDto {
   export class JoinChannelDto {
     @IsEmpty()
     @IsString()
-    userId: string;
+    userId?: string;
   
     @IsEmpty()
     @IsString()
     channelId: string;
+
+    @IsString()
+    password?: string;
   }
