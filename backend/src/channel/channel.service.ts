@@ -2,7 +2,7 @@ import { Injectable, ConflictException, BadRequestException, NotFoundException, 
 import * as bcrypt from 'bcrypt';
 import { CreateChannelDto, UpdateChannelDto, SearchChannelByNameDto, UpdateChannelByNameDto } from '../dto/channel.dto';
 import { PrismaService } from '../../prisma/prisma.service'
-import { PrismaClient, Channel, ChannelMembership, Prisma, Message } from '@prisma/client'
+import { PrismaClient, Channel, ChannelMembership, Prisma, Message, Player, User } from '@prisma/client'
 import { channel } from 'diagnostics_channel';
 import { randomBytes, createCipheriv, createDecipheriv, scrypt } from 'crypto';
 import { GetChannelDto } from 'src/dto/channel.dto';
@@ -523,5 +523,211 @@ export class ChannelService {
     }
   }
 
+  async findUserIdByPseudo(pseudo: string): Promise<number> {
+    const player = await this.prisma.player.findFirst({
+      where: { pseudo: pseudo },
+  });
+    if (!player) {
+      throw new Error('Joueur introuvable');
+    }
+  
+    return player.userId;
+  }
+  
 
-} 
+
+  async setAdmin(actingUserId: number, targetUserId: number, channelId: string): Promise<ChannelMembership> {
+    const channel = await this.prisma.channel.findUnique({
+      where: {
+        id: channelId,
+      },
+    });
+    if (!channel) throw new Error('Canal introuvable');
+
+    // Vérification si l'utilisateur qui agit est le propriétaire du canal
+    if (channel.ownerId !== actingUserId) {
+      throw new Error('Seul le propriétaire du canal peut donner des droits d\'administrateur');
+    }
+
+    return this.prisma.channelMembership.update({
+      where: {
+        userId_channelId: {
+          userId: targetUserId,
+          channelId: channelId,
+        },
+      },
+      data: {
+        isAdmin: true,
+        role: ChannelRole.ADMIN,
+      },
+    });
+}
+
+
+  async banUser(actingUserId: number, targetUserId: number, channelId: string): Promise<ChannelMembership> {
+    const channel = await this.prisma.channel.findUnique({
+      where: {
+        id: channelId,
+      },
+    });
+    if (!channel) throw new Error('Canal introuvable');
+
+    // Vérification si l'utilisateur cible est le propriétaire du canal
+    if (channel.ownerId === targetUserId) throw new Error('Impossible de bannir le propriétaire du canal');
+
+    // Vérification si l'utilisateur qui agit est le propriétaire ou un administrateur du canal
+    const actingUserMembership = await this.prisma.channelMembership.findUnique({
+      where: {
+        userId_channelId: {
+          userId: actingUserId,
+          channelId: channelId,
+        },
+      },
+    });
+    if (actingUserMembership.role !== ChannelRole.ADMIN && channel.ownerId !== actingUserId) {
+      throw new Error('Seul le propriétaire ou les administrateurs peuvent bannir les utilisateurs');
+    }
+
+    return this.prisma.channelMembership.update({
+      where: {
+        userId_channelId: {
+          userId: targetUserId,
+          channelId: channelId,
+        },
+      },
+      data: {
+        isBanned: true,
+      },
+    });
+}
+
+// Effectuez des modifications similaires pour muteUser et removeUser
+
+async muteUser(actingUserId: number, targetUserId: number, channelId: string, duration: number): Promise<ChannelMembership> {
+  const channel = await this.prisma.channel.findUnique({
+    where: {
+      id: channelId,
+    },
+  });
+  if (!channel) throw new Error('Canal introuvable');
+
+  // Vérification si l'utilisateur cible est le propriétaire du canal
+  if (channel.ownerId === targetUserId) throw new Error('Impossible de mettre en sourdine le propriétaire du canal');
+
+  // Vérification si l'utilisateur qui agit est le propriétaire ou un administrateur du canal
+  const actingUserMembership = await this.prisma.channelMembership.findUnique({
+    where: {
+      userId_channelId: {
+        userId: actingUserId,
+        channelId: channelId,
+      },
+    },
+  });
+  if (actingUserMembership.role !== ChannelRole.ADMIN && channel.ownerId !== actingUserId) {
+    throw new Error('Seul le propriétaire ou les administrateurs peuvent mettre en sourdine les utilisateurs');
+  }
+
+  const mutedUntil = new Date();
+  mutedUntil.setMinutes(mutedUntil.getMinutes() + duration);
+
+  return this.prisma.channelMembership.update({
+    where: {
+      userId_channelId: {
+        userId: targetUserId,
+        channelId: channelId,
+      },
+    },
+    data: {
+      mutedUntil: mutedUntil,
+    },
+  });
+}
+
+async removeUser(actingUserId: number, targetUserId: number, channelId: string): Promise<ChannelMembership> {
+  const channel = await this.prisma.channel.findUnique({
+    where: {
+      id: channelId,
+    },
+  });
+  if (!channel) throw new Error('Canal introuvable');
+
+  // Vérification si l'utilisateur cible est le propriétaire du canal
+  if (channel.ownerId === targetUserId) throw new Error('Impossible de supprimer le propriétaire du canal');
+
+  // Vérification si l'utilisateur qui agit est le propriétaire ou un administrateur du canal
+  const actingUserMembership = await this.prisma.channelMembership.findUnique({
+    where: {
+      userId_channelId: {
+        userId: actingUserId,
+        channelId: channelId,
+      },
+    },
+  });
+  if (actingUserMembership.role !== ChannelRole.ADMIN && channel.ownerId !== actingUserId) {
+    throw new Error('Seul le propriétaire ou les administrateurs peuvent supprimer les utilisateurs');
+  }
+
+  return this.prisma.channelMembership.delete({
+    where: {
+      userId_channelId: {
+        userId: targetUserId,
+        channelId: channelId,
+      },
+    },
+  });
+}
+
+
+  async findMembershipForUserInChannel(userId: number, channelId: string): Promise<ChannelMembership | null> {
+    try {
+      const membership = await this.prisma.channelMembership.findFirst({
+        where: {
+          userId: userId,
+          channelId: channelId,
+        },
+      });
+      if (!membership) 
+        throw new HttpException(`Membership not found for user with ID ${userId} in channel with ID ${channelId}`, HttpStatus.NOT_FOUND);
+  
+      return membership;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  private async isUserAdmin(userId: number, channelId: string): Promise<boolean> {
+    const membership = await this.findMembershipForUserInChannel(userId, channelId);
+    return membership?.isAdmin ?? false;
+}
+
+
+  /**
+   * Find a channel by its ID.
+   * @param id - Channel ID
+   */
+  async findChannelById(id: string): Promise<Channel> {
+    const channel = await this.prisma.channel.findUnique({
+      where: { id },
+    });
+
+    if (!channel) {
+      throw new NotFoundException(`Channel with ID ${id} not found`);
+    }
+
+    return channel;
+  }
+
+  /**
+   * Find a ChannelMembership record for a user in a specific channel.
+   * @param userId - User ID
+   * @param channelId - Channel ID
+   */
+  // async findMembershipForUserInChannel(userId: number, channelId: string): Promise<ChannelMembership | null> {
+  //   return await this.prisma.channelMembership.findFirst({
+  //     where: {
+  //       userId,
+  //       channelId,
+  //     },
+  //   });
+  // }
+}

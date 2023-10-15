@@ -22,6 +22,10 @@ enum UserStatus {
   IN_GAME
 }
 
+enum ChannelRole {
+  MEMBER
+  ADMIN
+}
 
 // Modèle pour représenter les utilisateurs
 model User {
@@ -113,4 +117,8 @@ model ChannelMembership {
   channelId String
   user      User     @relation(fields: [userId], references: [id])
   channel   Channel  @relation(fields: [channelId], references: [id])
+  isAdmin   Boolean   @default(false)
+  isBanned  Boolean   @default(false)
+  mutedUntil DateTime?  // null signifie que l'utilisateur n'est pas en sourdine
+  role      ChannelRole  @default(MEMBER)
 }
