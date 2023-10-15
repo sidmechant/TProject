@@ -38,4 +38,5 @@ export declare class ChannelService {
     deleteChannelByNameAndOwnerId(name: string, userId: number): Promise<void>;
     deleteAllChannelsByOwnerId(userId: number): Promise<void>;
     getChannelSocketDtoByChannel(channel: Channel): Promise<ChannelSocketDto>;
+    findChannelById(id: string): Promise<Channel>;
 }

@@ -14,6 +14,7 @@ export declare class ChatGateway implements OnGatewayConnection, OnGatewayDiscon
     constructor(sessionManager: GatewaySessionManager, eventEmitter: EventEmitter2, messageService: MessageService);
     handleConnection(client: Socket): Promise<void>;
     handleDisconnect(client: Socket): Promise<void>;
+    handleJoinChannel(channel: string, client: Socket): void;
     handleMessage(message: string): void;
     emitFriendRequestCreate(payload: Friend): void;
     emitFriendRequestCancel(payload: Friend): void;

@@ -19,6 +19,7 @@ export declare class FriendsController {
     searchPseudo(req: any, pseudoToSearch: string): Promise<Player | null>;
     getFriends(req: any): Promise<Friend[]>;
     getUsersOnline(): Promise<User[]>;
+    deleteFriend(req: any, targetId: any): Promise<Friend>;
     getFriendsOnline(req: any): Promise<User[]>;
     getFriendlist(req: any): Promise<({
         status: string;

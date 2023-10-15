@@ -104,6 +104,11 @@ let FriendsController = class FriendsController {
             return;
         }
     }
+    async deleteFriend(req, targetId) {
+        console.log("chacal id: ", targetId.targetId);
+        const id = targetId.targetId;
+        return await this.friendsService.deleteFriend(id, Number(req.userId));
+    }
     async getFriendsOnline(req) {
         try {
             const userId = Number(req.user.id);
@@ -209,6 +214,15 @@ __decorate([
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
 ], FriendsController.prototype, "getUsersOnline", null);
+__decorate([
+    (0, common_1.UseGuards)(jwt_guard_1.JwtAuthGuard),
+    (0, common_1.Patch)('delete'),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", Promise)
+], FriendsController.prototype, "deleteFriend", null);
 __decorate([
     (0, common_1.UseGuards)(jwt_guard_1.JwtAuthGuard),
     (0, common_1.Get)('friends-online'),

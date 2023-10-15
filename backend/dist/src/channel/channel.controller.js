@@ -219,6 +219,12 @@ let ChannelsController = class ChannelsController {
             };
         }
     }
+    async getUserIdByPseudo(pseudo) {
+        const userId = await this.channelService.findUserIdByPseudo(pseudo);
+        if (!userId)
+            throw new common_1.NotFoundException(`User with pseudo "${pseudo}" not found.`);
+        return userId;
+    }
     async getAllUserChannelWithMembers(req) {
         try {
             const channels = await this.prisma.channel.findMany({
@@ -257,22 +263,38 @@ let ChannelsController = class ChannelsController {
             }
         }
     }
-    async joinChannel(joinChannelDto) {
+    async joinChannel(req, joinChannelDto) {
         try {
-            const { userId, channelId } = joinChannelDto;
+            const { channelId } = joinChannelDto;
+            const userId = req.userId;
+            this.logger.debug(`Join-channel ${userId} ${channelId}`);
             const updatedChannel = await this.channelService.addMemberToChannel(channelId, Number(userId));
-            if (!updatedChannel) {
+            if (!updatedChannel)
                 throw new common_1.NotFoundException('User or channel not found.');
-            }
             return true;
         }
         catch (error) {
             return false;
         }
     }
-    async leaveChannel(joinChannelDto) {
+    async joinChannelProtected(req, joinChannelDto) {
         try {
-            const { userId, channelId } = joinChannelDto;
+            const { channelId, password } = joinChannelDto;
+            const userId = req.userId;
+            this.logger.debug(`Join-channel-protected ${userId} ${channelId} ${password}`);
+            const updatedChannel = await this.channelService.addMemberToChannel(channelId, Number(userId), password);
+            if (!updatedChannel)
+                throw new common_1.NotFoundException('User or channel not found.');
+            return true;
+        }
+        catch (error) {
+            return false;
+        }
+    }
+    async leaveChannel(req, joinChannelDto) {
+        try {
+            const { channelId } = joinChannelDto;
+            const userId = req.userId;
             const isMembershipRemoved = await this.channelService.removeChannelMembershipToUser(channelId, Number(userId));
             if (!isMembershipRemoved) {
                 throw new common_1.NotFoundException('User or channel not found.');
@@ -368,17 +390,27 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], ChannelsController.prototype, "getAllUserChannelWithMembers", null);
 __decorate([
-    (0, common_1.Post)('join-channel'),
-    __param(0, (0, common_1.Body)()),
+    (0, common_1.Patch)('join-channel'),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [channel_dto_1.JoinChannelDto]),
+    __metadata("design:paramtypes", [Object, channel_dto_1.JoinChannelDto]),
     __metadata("design:returntype", Promise)
 ], ChannelsController.prototype, "joinChannel", null);
 __decorate([
-    (0, common_1.Post)('leave-channel'),
-    __param(0, (0, common_1.Body)()),
+    (0, common_1.Patch)('join-channel-protected'),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [channel_dto_1.JoinChannelDto]),
+    __metadata("design:paramtypes", [Object, channel_dto_1.JoinChannelProtectedDto]),
+    __metadata("design:returntype", Promise)
+], ChannelsController.prototype, "joinChannelProtected", null);
+__decorate([
+    (0, common_1.Post)('leave-channel'),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, channel_dto_1.JoinChannelDto]),
     __metadata("design:returntype", Promise)
 ], ChannelsController.prototype, "leaveChannel", null);
 __decorate([

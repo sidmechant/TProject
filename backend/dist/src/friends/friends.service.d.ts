@@ -90,6 +90,6 @@ export declare class FriendsService {
         status: import(".prisma/client").$Enums.UserStatus;
     }>;
     findFriendById(id: number): Promise<Friend>;
-    deleteFriend(id: number, userId: number): Promise<Friend>;
+    deleteFriend(id_first: number, id_second: number): Promise<Friend>;
     isFriends(userOneId: number, userTwoId: number): Promise<boolean>;
 }

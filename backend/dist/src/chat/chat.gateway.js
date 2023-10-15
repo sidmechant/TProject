@@ -39,6 +39,9 @@ let ChatGateway = class ChatGateway {
         console.log('Client disconnected CHAT:', token);
         this.sessionManager.removeUserSocket(token);
     }
+    handleJoinChannel(channel, client) {
+        client.join(channel);
+    }
     handleMessage(message) {
         const formattedMessage = `Nouveau message : ${message}`;
         console.log(message);
@@ -128,6 +131,14 @@ __decorate([
     (0, websockets_1.WebSocketServer)(),
     __metadata("design:type", socket_io_1.Server)
 ], ChatGateway.prototype, "server", void 0);
+__decorate([
+    (0, websockets_1.SubscribeMessage)('joinChannel'),
+    __param(0, (0, websockets_1.MessageBody)()),
+    __param(1, (0, websockets_1.ConnectedSocket)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, socket_io_1.Socket]),
+    __metadata("design:returntype", void 0)
+], ChatGateway.prototype, "handleJoinChannel", null);
 __decorate([
     (0, websockets_1.SubscribeMessage)('message'),
     __param(0, (0, websockets_1.MessageBody)()),
