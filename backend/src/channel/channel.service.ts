@@ -2,7 +2,7 @@ import { Injectable, ConflictException, BadRequestException, NotFoundException, 
 import * as bcrypt from 'bcrypt';
 import { CreateChannelDto, UpdateChannelDto, SearchChannelByNameDto, UpdateChannelByNameDto, CreateMessageDto } from '../dto/channel.dto';
 import { PrismaService } from '../../prisma/prisma.service'
-import { PrismaClient, Channel, ChannelMembership, Prisma, Message } from '@prisma/client'
+import { PrismaClient, Channel, ChannelMembership, Prisma, Message, User } from '@prisma/client'
 import { channel } from 'diagnostics_channel';
 import { randomBytes, createCipheriv, createDecipheriv, scrypt } from 'crypto';
 import { GetChannelDto } from 'src/dto/channel.dto';
@@ -135,6 +135,9 @@ export class ChannelService {
           password: hashedPassword
         }
       });
+
+      this.addMemberToChannel(channel.id, channel.ownerId);
+      this.addChannelMembershipToUser(channel.id, channel.ownerId);
       if (channel) return channel;
       throw new HttpException("cannal don't create", HttpStatus.NOT_IMPLEMENTED)
     } catch (error) {
@@ -690,4 +693,58 @@ export class ChannelService {
       return null;
     }
   }
+
+  async addChannelMembershipToUser(channelId: string, userId: number): Promise<User | null> {
+    try {
+      const user = await this.prisma.user.findUnique({
+        where: {
+          id: userId,
+        },
+        include: {
+          channels: true,
+        },
+      }); 
+      if (!user) {
+        throw new Error('User not found');
+      }
+  
+      const channel = await this.prisma.channel.findUnique({
+        where: {
+          id: channelId,
+        },
+      }); 
+      if (!channel) {
+        throw new Error('Channel not found');
+      }
+  
+      const newChannelMembership = await this.prisma.channelMembership.create({
+        data: {
+          userId,
+          channelId,
+        },
+      }); 
+      const updatedUser = await this.prisma.user.update({
+        where: {
+          id: userId,
+        },
+        data: {
+          channels: {
+            connect: {
+              id: newChannelMembership.id,
+            },
+          },
+        },
+        include: {
+          channels: true,
+        },
+      }); 
+
+      return updatedUser || null;
+    } catch (error) {
+      console.error(error);
+      return null;
+    }
+  }
+  
+  
 } 
