@@ -290,6 +290,7 @@ export class ChannelsController {
       const { channelId } = joinChannelDto;
       const userId: number = req.userId;
 
+      this.logger.debug('Join-channel');
       //const updatedUser = await this.channelService.addChannelMembershipToUser(channelId, Number(userId));
       const updatedChannel = await this.channelService.addMemberToChannel(channelId, Number(userId));
 
@@ -307,6 +308,7 @@ export class ChannelsController {
       const { channelId, password } = joinChannelDto;
       const userId: number = req.userId;
 
+      this.logger.debug('Join-channel');
       //const updatedUser = await this.channelService.addChannelMembershipToUser(channelId, Number(userId));
       const updatedChannel = await this.channelService.addMemberToChannel(channelId, Number(userId), password);
 
