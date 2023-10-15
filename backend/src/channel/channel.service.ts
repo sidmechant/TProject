@@ -533,31 +533,32 @@ export class ChannelService {
 
 
 
-  /*async listChannelsByUserId(userId: number): Promise<Channel[] | null> {
-    try {
-      const userWithChannels = await this.prisma.user.findUnique  ({
-        where: {
-          id: userId,
-        },
-        include: {
-          channels: {
-            include: {
-              channel: true,
-            },
-          },
-        },
-      });
+  //async listChannelsByUserId(userId: number): Promise<Channel[] | null> {
+  //  try {
+  //    const userWithChannels = await this.prisma.user.findUnique  ({
+  //      where: {
+  //        id: userId,
+  //      },
+  //      include: {
+  //        channels: {
+  //          include: {
+  //            channel: true,
+  //          },
+  //        },
+  //      },
+  //    });
 
-      if (!userWithChannels) {
-        throw new Error('Utilisateur non trouvé');
-      }
-
-      return userWithChannels.channels;
-    } catch (error) {
-      console.error(error);
-      throw new Error('Une erreur s\'est produite lors de la récupération des canaux de l\'utilisateur.');
-    }
-  }*/
+  //    if (!userWithChannels) {
+  //      throw new Error('Utilisateur non trouvé');
+  //    }
+  //    if (userWithChannels.channels)
+  //      return userWithChannels.channels;
+  //    return null;
+  //  } catch (error) {
+  //    console.error(error);
+  //    throw new Error('Une erreur s\'est produite lors de la récupération des canaux de l\'utilisateur.');
+  //  }
+  //}
 
   async getMessagesForChannel(channelId: string): Promise<Message[] | null> {
     try {

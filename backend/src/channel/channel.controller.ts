@@ -233,11 +233,11 @@ export class ChannelsController {
   }
 
   @Get('all_from_id')
-  async getAllUserChannel(@Req() req): Promise<ChannelMembership[] | null> {
+  async getAllUserChannel(@Req() req): Promise<{ statusCode: number, message: any, isSuccess: boolean }> {
     try {
       const user = await this.prisma.user.findFirst({
         where: {
-          id: Number(req.user.id),
+          id: Number(req.userId),
         },
         include: {
           channels: true,
@@ -245,12 +245,23 @@ export class ChannelsController {
       });
 
       console.log("debug all_from_id", user?.channels);
-      return user?.channels || null;
+        return {
+          statusCode: HttpStatus.OK,
+          message: user.channels,
+          isSuccess: true
+        };
     } catch (error) {
-      console.error(error);
-      throw new Error('Une erreur s\'est produite lors de la récupération des canaux de l\'utilisateur.');
+      if (error instanceof HttpException) {
+        return {
+          statusCode: error.getStatus(),
+          message: error.message,
+          isSuccess: false
+        };
+      } return {
+        statusCode: HttpStatus.BAD_REQUEST,
+        message: 'Bad request',
+        isSuccess: false
+      }
     }
   }
-
-  
 }
