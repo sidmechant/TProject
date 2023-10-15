@@ -71,9 +71,11 @@ const acceptFriendRequest = async (requesterId : any) => {
     }
   }
 
-  const deleteFriend = async (requesterId : any) => {
+  const deleteFriend = async (targetId : number) => {
     try {
-
+      console.log("Delete id: ", targetId);
+      const response = await axios.patch('/friends/delete', {targetId});
+      return response.data;
     } catch (error) {
       handleAxiosError(error);
     }
@@ -246,6 +248,7 @@ const acceptFriendRequest = async (requesterId : any) => {
       handleAxiosError(error);
     }
   }
+
   
   export {
     sendFriendRequest,
