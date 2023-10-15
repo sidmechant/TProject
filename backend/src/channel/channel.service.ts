@@ -1,6 +1,6 @@
-import { Injectable, ConflictException, BadRequestException, NotFoundException, HttpException, HttpStatus, Logger } from '@nestjs/common';
+import { Injectable, ConflictException, BadRequestException, NotFoundException, HttpException, HttpStatus, Logger, Req } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
-import { CreateChannelDto, UpdateChannelDto, SearchChannelByNameDto, UpdateChannelByNameDto } from '../dto/channel.dto';
+import { CreateChannelDto, UpdateChannelDto, SearchChannelByNameDto, UpdateChannelByNameDto, CreateMessageDto } from '../dto/channel.dto';
 import { PrismaService } from '../../prisma/prisma.service'
 import { PrismaClient, Channel, ChannelMembership, Prisma, Message } from '@prisma/client'
 import { channel } from 'diagnostics_channel';
@@ -366,31 +366,39 @@ export class ChannelService {
       });
       if (!channel)
         throw new Error('Canal non trouvé');
-
+  
       const isMember = channel.members.some((member) => member.userId === userId);
       if (isMember)
         throw new Error('Member not found ....');
-
+  
+      const newMember = await this.prisma.channelMembership.create({
+        data: {
+          userId,
+          channelId,
+        },
+      });
+      channel.members.push(newMember);
+  
       const updatedChannel = await this.prisma.channel.update({
         where: {
           id: channelId,
         },
         data: {
           members: {
-            create: {
-              userId,
-            },
+            set: channel.members,
           },
         },
         include: {
           members: true,
         },
       });
+  
       return updatedChannel;
     } catch (error) {
       return null;
     }
   }
+   
 
   async removeMemberFromChannel(channelId: string, userId: number): Promise<Channel | null> {
     try {
@@ -487,7 +495,7 @@ export class ChannelService {
       return null;
     }
   }
-  
+
   async removeMessageChannelByMessageId(messageId: string): Promise<void> {
     try {
       const message = await this.prisma.message.findUnique({
@@ -524,4 +532,161 @@ export class ChannelService {
   }
 
 
+
+  /*async listChannelsByUserId(userId: number): Promise<Channel[] | null> {
+    try {
+      const userWithChannels = await this.prisma.user.findUnique  ({
+        where: {
+          id: userId,
+        },
+        include: {
+          channels: {
+            include: {
+              channel: true,
+            },
+          },
+        },
+      });
+
+      if (!userWithChannels) {
+        throw new Error('Utilisateur non trouvé');
+      }
+
+      return userWithChannels.channels;
+    } catch (error) {
+      console.error(error);
+      throw new Error('Une erreur s\'est produite lors de la récupération des canaux de l\'utilisateur.');
+    }
+  }*/
+
+  async getMessagesForChannel(channelId: string): Promise<Message[] | null> {
+    try {
+      const messages = await this.prisma.message.findMany({
+        where: {
+          channelId: channelId,
+        },
+      });
+      if (messages) return messages;
+      return null;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  async sendMessageToUserByUserId(senderId: number, receiverId: number, messageContent: string): Promise<void> {
+    try {
+      const sender = await this.userService.ifUserExistsByUserId(senderId);
+      const receiver = await this.userService.ifUserExistsByUserId(receiverId);
+      if (!sender || !receiver) {
+        throw new Error('Sender or receiver not found');
+      }
+
+      let channel: Channel | null = await this.ifChannelExistsByName(`channel_${senderId}_${receiverId}`) as Channel | null;
+      if (!channel) {
+        channel = await this.createPrivateChannel(senderId, receiverId);
+        if (!channel) {
+          throw new Error('Channel creation failed');
+        }
+      }
+
+      const createMessageDto: CreateMessageDto = {
+        content: messageContent,
+        userId: senderId.toString(),
+        channelId: channel.id,
+      };
+      const message: Message | null = await this.createMessageUnique(createMessageDto);
+      if (!message) {
+        throw new Error('Message creation failed');
+      }
+      
+      const messages: Message[] | null = await this.getMessagesForChannel(channel.id);
+      if (messages) {
+        throw new Error('Messages not found');
+      }
+        messages.push(message);
+
+        await this.prisma.channel.update({
+          where: {
+            id: channel.id,
+          },
+          data: {
+            messages: {
+              set: messages,
+            },
+          },
+          include: {
+            members: true,
+            messages: true,
+          },
+        });
+
+    } catch (error) {
+      console.error(error);
+      throw new Error('An error occurred while sending the message.');
+    }
+  }
+
+
+  async ifChannelExistsByName(name: string): Promise<Channel | null> {
+    try {
+      const channel = await this.prisma.channel.findUnique({
+        where: {
+          name,
+        },
+        include: {
+          messages: true,
+          members: false,
+        },
+      });
+      return channel || null;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  async createPrivateChannel(senderId: number, receiverId: number): Promise<Channel | null> {
+    try {
+      const channel = await this.prisma.channel.create({
+        data: {
+          name: `Private_${senderId}_${receiverId}`,
+          type: 'private',
+          ownerId: senderId,
+          members: {
+            create: [
+              {
+                userId: senderId,
+              },
+              {
+                userId: receiverId,
+              },
+            ],
+          },
+        },
+        include: {
+          members: true,
+          messages: true,
+        },
+      });
+
+      return channel || null;
+    } catch (error) {
+      console.error(error);
+      throw new Error('Conversation creation failed');
+    }
+  }
+
+  async createMessageUnique(createMessageDto: CreateMessageDto): Promise<Message | null> {
+    try {
+      const message = await this.prisma.message.create({
+        data: {
+          content: createMessageDto.content,
+          channelId: createMessageDto.channelId,
+          userId: Number(createMessageDto.userId),
+        },
+      });
+      return message || null;
+    } catch (error) {
+      return null;
+    }
+  }
 } 

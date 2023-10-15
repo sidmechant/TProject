@@ -12,6 +12,7 @@ import { request } from 'express';
 import { ChannelSocketDto } from 'src/dto/chat.dto';
 import { error } from 'console';
 import { ChatGateway } from 'src/chat/chat.gateway';
+import { PrismaService } from 'prisma/prisma.service';
 
 
 @SkipThrottle()
@@ -23,8 +24,9 @@ export class ChannelsController {
   constructor(
     private readonly events: EventEmitter2,
     private readonly channelService: ChannelService,
-    private readonly chatGateway: ChatGateway
-  ) {}
+    private readonly chatGateway: ChatGateway,
+    private readonly prisma: PrismaService
+  ) { }
 
   @Get('test')
   test() {
@@ -48,7 +50,7 @@ export class ChannelsController {
 
       const newChannel: Channel | null = await this.channelService.createChannel(createChannelDto);
       if (!newChannel)
-        throw error();      
+        throw error();
       this.logger.debug(`Channel created ${newChannel}`);
 
       const channelSocketDto: ChannelSocketDto = await this.channelService.getChannelSocketDtoByChannel(newChannel);
@@ -68,9 +70,9 @@ export class ChannelsController {
       this.logger.error(`Error ${error.message}`);
       if (error instanceof HttpException) {
         return {
-            statusCode: error.getStatus(),
-            message: error.message,
-            isSuccess: false
+          statusCode: error.getStatus(),
+          message: error.message,
+          isSuccess: false
         };
       } return {
         statusCode: HttpStatus.BAD_REQUEST,
@@ -98,9 +100,9 @@ export class ChannelsController {
     } catch (error) {
       if (error instanceof HttpException) {
         return {
-            statusCode: error.getStatus(),
-            message: error.message,
-            isSuccess: false
+          statusCode: error.getStatus(),
+          message: error.message,
+          isSuccess: false
         };
       } return {
         statusCode: HttpStatus.BAD_REQUEST,
@@ -127,9 +129,9 @@ export class ChannelsController {
     } catch (error) {
       if (error instanceof HttpException) {
         return {
-            statusCode: error.getStatus(),
-            message: error.message,
-            isSuccess: false
+          statusCode: error.getStatus(),
+          message: error.message,
+          isSuccess: false
         };
       } return {
         statusCode: HttpStatus.BAD_REQUEST,
@@ -155,10 +157,10 @@ export class ChannelsController {
     } catch (error) {
       if (error instanceof HttpException) {
         return {
-            statusCode: error.getStatus(),
-            message: error.message,
-            isSuccess: false,
-            members: [],
+          statusCode: error.getStatus(),
+          message: error.message,
+          isSuccess: false,
+          members: [],
         };
       } return {
         statusCode: HttpStatus.BAD_REQUEST,
@@ -186,10 +188,10 @@ export class ChannelsController {
     } catch (error) {
       if (error instanceof HttpException) {
         return {
-            statusCode: error.getStatus(),
-            message: error.message,
-            isSuccess: false,
-            messages: [],
+          statusCode: error.getStatus(),
+          message: error.message,
+          isSuccess: false,
+          messages: [],
         };
       } return {
         statusCode: HttpStatus.BAD_REQUEST,
@@ -218,9 +220,9 @@ export class ChannelsController {
     } catch (error) {
       if (error instanceof HttpException) {
         return {
-            statusCode: error.getStatus(),
-            message: error.message,
-            isSuccess: false
+          statusCode: error.getStatus(),
+          message: error.message,
+          isSuccess: false
         };
       } return {
         statusCode: HttpStatus.BAD_REQUEST,
@@ -229,4 +231,26 @@ export class ChannelsController {
       }
     }
   }
+
+  @Get('all_from_id')
+  async getAllUserChannel(@Req() req): Promise<ChannelMembership[] | null> {
+    try {
+      const user = await this.prisma.user.findFirst({
+        where: {
+          id: Number(req.user.id),
+        },
+        include: {
+          channels: true,
+        },
+      });
+
+      console.log("debug all_from_id", user?.channels);
+      return user?.channels || null;
+    } catch (error) {
+      console.error(error);
+      throw new Error('Une erreur s\'est produite lors de la récupération des canaux de l\'utilisateur.');
+    }
+  }
+
+  
 }
