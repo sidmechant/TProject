@@ -47,7 +47,7 @@ export class PlayersController {
       };
     } catch (error) {
       console.error("Une erreur s'est produite lors de la récupération des détails du joueur.", error);
-      throw new HttpException("Une erreur s'est produite lors de la récupération des détails du joueur.", HttpStatus.BAD_REQUEST);
+      //throw new HttpException("Une erreur s'est produite lors de la récupération des détails du joueur.", HttpStatus.BAD_REQUEST);
     }
   }
   // async getPlayerById(@Req() req): Promise<Player> {

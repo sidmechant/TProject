@@ -23,7 +23,7 @@ export class JwtAuthGuard implements CanActivate {
     const request = context.switchToHttp().getRequest();
     const res = context.switchToHttp().getResponse();
 
-    this.logger.debug(` JWT GUARD ACTIVATED `);
+    //this.logger.debug(` JWT GUARD ACTIVATED `);
 
     const isPublic = Reflect.getMetadata('isPublic', context.getHandler());
     if (isPublic) {
@@ -39,7 +39,7 @@ export class JwtAuthGuard implements CanActivate {
         throw new UnauthorizedException('No token provided');
       }
 
-      this.logger.debug(`JWT COOKIE ${cookie}`);
+      //this.logger.debug(`JWT COOKIE ${cookie}`);
       const decoded = verify(cookie, process.env.JWT_SECRET) as JwtPayload;
       if (!decoded || !decoded.sub || !decoded.sessionId) {
         res.clearCookie('jwt_token');
@@ -50,7 +50,7 @@ export class JwtAuthGuard implements CanActivate {
       }
 
 
-      this.logger.debug(`JWT ${decode} `);
+      //this.logger.debug(`JWT ${decode} `);
       // Vérifiez le sessionId avec la base de données
       const user = await this.crudService.findUserById(Number(decoded.sub)); // Supposons que vous ayez une méthode comme celle-ci dans votre CrudService
       if (user.sessionId !== decoded.sessionId) {
@@ -61,7 +61,7 @@ export class JwtAuthGuard implements CanActivate {
       }
 
       request.user = user;
-      this.logger.debug(`JWT FINISH user : ${user.id} ${request.id}`);
+      //this.logger.debug(`JWT FINISH user : ${user.id} ${request.id}`);
       return true;
     } catch (err) {
       // console.log(err);

@@ -68,20 +68,6 @@ const Home = () => {
   const [elapsedTime, setElapsedTime] = useState(0);
 
   useEffect(() => {
-
-    const getMyUser = async () => {
-      const me = await API.fetcher('/players');
-
-      return me;
-    }
-
-      getMyUser().then((response: any) => {
-        console.log(response.player);
-        localStorage.setItem('player', JSON.stringify(response.player));
-      });
-  })
-
-  useEffect(() => {
     const startTime = Date.now();
     const interval = setInterval(() => {
       const currentelapsedTime = Date.now() - startTime;
@@ -97,6 +83,23 @@ const Home = () => {
       console.log('Component will unmount');
     }
   }, []);
+
+  useEffect(() => {
+
+    const getMyUser = async () => {
+
+      const me = await API.fetcher('/players');
+
+      return me;
+    }
+    
+    if (!isLoading && API.getCookie('jwt_token')) {
+      getMyUser().then((response: any) => {
+        console.log(response.player);
+        localStorage.setItem('player', JSON.stringify(response.player));
+      });
+    }
+  }, [isLoading])
 
   if (isLoading) {
     return (

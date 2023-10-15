@@ -11,7 +11,8 @@ import { Slider, SliderFilledTrack, SliderThumb, SliderTrack, Input } from "@cha
 import NavbarChat from './NavbarChat.tsx';
 import NavbarFriends from './NavbarFriends.tsx';
 import NavbarNotif from './NavbarNotif.tsx';
-import * as API from '../Profil/FetchApi.tsx';
+import * as oldAPI from '../Profil/FetchApi.tsx';
+import * as API from './FetchAPiChat.tsx';
 import MainChat from './MainChat.tsx';
 import MainFriends from './MainFriends.tsx';
 import MainNotif from './MainNotif.tsx';
@@ -122,15 +123,16 @@ export default function NewChatBox() {
 
     useEffect(() => {
     
-        const GetUserData = async () => {
+        const GetUserData = () => {
 
-			const fetchedUser = await API.getPlayerDataApi();
+			const fetchedUser = API.getMyself();//await API.getPlayerDataApi();
 			return fetchedUser.player;
         };
-		setMyUser(GetUserData());
+		if (API.getCookie('jwt_token'))
+			setMyUser(GetUserData());
         //GetUserData();
 
-    }, []);
+    });
 
 	useEffect(() => {
 		if (isChatBoxOpen) {
