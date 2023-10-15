@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, UseGuards, Param, Req, HttpException, Http
 import { Socket } from 'socket.io';
 import { AuthUser } from 'src/jwt/auth-user.decorator';
 import { ChannelMembership, Message, Player, User } from '@prisma/client';
-import { CreateChannelDto, CreateMessageDto, GetChannelDto, JoinChannelDto } from '../dto/channel.dto';
+import { CreateChannelDto, CreateMessageDto, GetChannelDto, JoinChannelDto, JoinChannelProtectedDto } from '../dto/channel.dto';
 import { SkipThrottle } from '@nestjs/throttler';
 import { JwtAuthGuard } from 'src/auth/jwt.guard';
 import { EventEmitter2 } from '@nestjs/event-emitter';
@@ -364,6 +364,8 @@ export class ChannelsController {
       const { channelId } = joinChannelDto;
       const userId: number = req.userId;
 
+      this.logger.debug(`Join-channel ${userId} ${channelId}`);
+
       //const updatedUser = await this.channelService.addChannelMembershipToUser(channelId, Number(userId));
       const updatedChannel = await this.channelService.addMemberToChannel(channelId, Number(userId));
 
@@ -376,11 +378,12 @@ export class ChannelsController {
   }
 
   @Patch('join-channel-protected')
-  async joinChannelProtected(@Req() req, @Body() joinChannelDto: JoinChannelDto): Promise<boolean> {
+  async joinChannelProtected(@Req() req, @Body() joinChannelDto: JoinChannelProtectedDto): Promise<boolean> {
     try {
       const { channelId, password } = joinChannelDto;
       const userId: number = req.userId;
 
+      this.logger.debug(`Join-channel-protected ${userId} ${channelId} ${password}`);
       //const updatedUser = await this.channelService.addChannelMembershipToUser(channelId, Number(userId));
       const updatedChannel = await this.channelService.addMemberToChannel(channelId, Number(userId), password);
 
@@ -394,10 +397,11 @@ export class ChannelsController {
   }
 
   @Post('leave-channel')
-  async leaveChannel(@Body() joinChannelDto: JoinChannelDto): Promise<boolean> {
+  async leaveChannel(@Req() req, @Body() joinChannelDto: JoinChannelDto): Promise<boolean> {
     try {
-      const { userId, channelId } = joinChannelDto;
+      const { channelId } = joinChannelDto;
 
+      const userId: number = req.userId;
       //const isMemberRemoved = await this.channelService.removeMemberToChannel(channelId, Number(userId));
       const isMembershipRemoved = await this.channelService.removeChannelMembershipToUser(channelId, Number(userId));
 
