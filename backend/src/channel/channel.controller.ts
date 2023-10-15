@@ -12,7 +12,7 @@ import { request } from 'express';
 import { ChannelSocketDto } from 'src/dto/chat.dto';
 import { error } from 'console';
 import { ChatGateway } from 'src/chat/chat.gateway';
-import { PrismaService } from 'prisma/prisma.service';
+import { RolesGuard } from './channel.guard';import { PrismaService } from 'prisma/prisma.service';
 
 
 @SkipThrottle()
@@ -231,6 +231,79 @@ export class ChannelsController {
         message: 'Bad request',
         isSuccess: false
       }
+    }
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+  ////////////////////////////////////////////////////////////////// KICK MUTE CONTROLLER/////////////////////////////////////////////////////////////////////////////////////////
+  private async getUserIdByPseudo(pseudo: string): Promise<number> {
+    const userId = await this.channelService.findUserIdByPseudo(pseudo);
+    if (!userId) throw new NotFoundException(`User with pseudo "${pseudo}" not found.`);
+    return userId;
+  }
+
+  @Post(':channelId/admin/:pseudo')
+  @UseGuards(RolesGuard)
+  async setAdmin(@Req() req, @Param('channelId') channelId: string, @Param('pseudo') pseudo: string) {
+    const actingUserId = req.userId;
+    const targetUserId = await this.getUserIdByPseudo(pseudo);
+
+    try {
+      return await this.channelService.setAdmin(actingUserId, targetUserId, channelId);
+    } catch (error) {
+     return ;
+    }
+  }
+
+  @Post(':channelId/ban/:pseudo')
+  @UseGuards(RolesGuard)
+  async banUser(@Req() req, @Param('channelId') channelId: string, @Param('pseudo') pseudo: string) {
+    const actingUserId = req.userId;
+    const targetUserId = await this.getUserIdByPseudo(pseudo);
+
+    try {
+      return await this.channelService.banUser(actingUserId, targetUserId, channelId);
+    } catch (error) {
+     return ;
+    }
+  }
+
+  @Post(':channelId/mute/:pseudo')
+  @UseGuards(RolesGuard)
+  async muteUser(@Req() req, @Param('channelId') channelId: string, @Param('pseudo') pseudo: string) {
+    const actingUserId = req.userId;
+    const targetUserId = await this.getUserIdByPseudo(pseudo);
+
+    try {
+      return await this.channelService.muteUser(actingUserId, targetUserId, channelId, 30);
+    } catch (error) {
+     return ;
+    }
+  }
+
+  @Post(':channelId/remove/:pseudo')
+  @UseGuards(RolesGuard)
+  async removeUser(@Req() req, @Param('channelId') channelId: string, @Param('pseudo') pseudo: string) {
+    const actingUserId = req.userId;
+    const targetUserId = await this.getUserIdByPseudo(pseudo);
+
+    try {
+      return await this.channelService.removeUser(actingUserId, targetUserId, channelId);
+    } catch (error) {
+      if (error.message.includes('Canal introuvable')) {
+        throw new NotFoundException('Channel not found');
+      }
+     return ;
     }
   }
 

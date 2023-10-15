@@ -2,7 +2,7 @@ import { Injectable, ConflictException, BadRequestException, NotFoundException, 
 import * as bcrypt from 'bcrypt';
 import { CreateChannelDto, UpdateChannelDto, SearchChannelByNameDto, UpdateChannelByNameDto } from '../dto/channel.dto';
 import { PrismaService } from '../../prisma/prisma.service'
-import { PrismaClient, Channel } from '@prisma/client'
+import { PrismaClient, Channel , ChannelMembership} from '@prisma/client'
 import { channel } from 'diagnostics_channel';
 import { randomBytes, createCipheriv, createDecipheriv, scrypt } from 'crypto';
 import { ChannelSocketDto } from 'src/dto/chat.dto';
@@ -242,6 +242,10 @@ export class ChannelService {
     }
   }
 
+
+
+
+  
   /**
   * Récupère tous les canaux possédés par un utilisateur.
   * @param userId L'ID de l'utilisateur.
@@ -400,4 +404,124 @@ export class ChannelService {
     return channelSocketDto;
   }
 
+
+
+
+
+
+//   async setAdmin(userId: number, channelId: string): Promise<ChannelMembership> {
+//     return this.prisma.channelMembership.update({
+//       where: {
+//         userId_channelId: {
+//           userId: userId,
+//           channelId: channelId,
+//         },
+//       },
+//       data: {
+//         isAdmin: true,
+//         role: 'ADMIN',
+//       },
+//     });
+//   }
+
+//   async banUser(userId: number, channelId: string): Promise<ChannelMembership> {
+//     return this.prisma.channelMembership.update({
+//       where: {
+//         userId_channelId: {
+//           userId: userId,
+//           channelId: channelId,
+//         },
+//       },
+//       data: {
+//         isBanned: true,
+//       },
+//     });
+//   }
+
+//   async muteUser(userId: number, channelId: string, duration: number): Promise<ChannelMembership> {
+//     const mutedUntil = new Date();
+//     mutedUntil.setMinutes(mutedUntil.getMinutes() + duration);
+//     return this.prisma.channelMembership.update({
+//       where: {
+//         userId_channelId: {
+//           userId: userId,
+//           channelId: channelId,
+//         },
+//       },
+//       data: {
+//         mutedUntil: mutedUntil,
+//       },
+//     });
+//   }
+
+//   async removeUser(userId: number, channelId: string): Promise<ChannelMembership> {
+//     return this.prisma.channelMembership.delete({
+//       where: {
+//         userId_channelId: {
+//           userId: userId,
+//           channelId: channelId,
+//         },
+//       },
+//     });
+//   }
+
+
+//   async findMembershipForUserInChannel(userId: number, channelId: string): Promise<ChannelMembership | null> {
+//     try {
+//       const membership = await this.prisma.channelMembership.findFirst({
+//         where: {
+//           userId: userId,
+//           channelId: channelId,
+//         },
+//       });
+//       if (!membership) 
+//         throw new HttpException(`Membership not found for user with ID ${userId} in channel with ID ${channelId}`, HttpStatus.NOT_FOUND);
+  
+//       return membership;
+//     } catch (error) {
+//       throw error;
+//     }
+//   }
+
+//   private async isUserAdmin(userId: number, channelId: string): Promise<boolean> {
+//     const membership = await this.findMembershipForUserInChannel(userId, channelId);
+//     return membership?.isAdmin ?? false;
+// }
+
+
+  /**
+   * Find a channel by its ID.
+   * @param id - Channel ID
+   */
+  async findChannelById(id: string): Promise<Channel> {
+    const channel = await this.prisma.channel.findUnique({
+      where: { id },
+    });
+
+    if (!channel) {
+      throw new NotFoundException(`Channel with ID ${id} not found`);
+    }
+
+    return channel;
+  }
+
+  /**
+   * Find a ChannelMembership record for a user in a specific channel.
+   * @param userId - User ID
+   * @param channelId - Channel ID
+   */
+//   async findMembershipForUserInChannel(userId: number, channelId: string): Promise<ChannelMembership | null> {
+//     return await this.prisma.channelMembership.findFirst({
+//       where: {
+//         userId,
+//         channelId,
+//       },
+//     });
+//   }
+// }
+  
+  // Make sure to add this function within the ChannelService class.
+  
+  // Now, with this function in place, you can use the findMembershipForUserInChannel function whenever you need to check if a specific user is a member of a specific channel.
+  
 }
