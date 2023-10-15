@@ -65,8 +65,8 @@ function App() {
 						</Routes>
 					</AnimatePresence>
 				</ChatBoxContext.Provider>
+				<NewChatBox ready={ready}/>
 			</Connection>
-			<NewChatBox ready={ready}/>
 		</ChakraProvider>
 	)
 }

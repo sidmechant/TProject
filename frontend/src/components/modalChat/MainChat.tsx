@@ -125,6 +125,7 @@ function CreateConversation() {
 			  <div className="mb-5">
 				<FormLabel>Channel Type</FormLabel>
 				<Select
+				id='select'
 				  bg={'white'}
 				  name="type"
 				  value={formData.type}
@@ -138,6 +139,7 @@ function CreateConversation() {
 			  <div className="mb-5">
 				<FormLabel>Channel name</FormLabel>
 				<Input
+				  id='name'
 				  bg={'white'}
 				  placeholder={formData.invalid ? "Name min required size is 3" : "Name"}
 				  name="name"
@@ -150,6 +152,7 @@ function CreateConversation() {
 			  <div>
 				<FormLabel>Password</FormLabel>
 				<Input
+				  id='password'
 				  bg={'white'}
 				  placeholder="********"
 				  name="password"
