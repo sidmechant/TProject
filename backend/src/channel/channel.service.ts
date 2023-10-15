@@ -815,7 +815,7 @@ export class ChannelService {
                     }
                 },
                 type: {
-                    not: "PRIVATE"
+                    not: "private"
                 }
             },
             include: {
