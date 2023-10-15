@@ -36,6 +36,9 @@ export declare class CreateMessageDto {
     readonly recepient?: string;
 }
 export declare class JoinChannelDto {
-    userId: string;
     channelId: string;
+}
+export declare class JoinChannelProtectedDto {
+    channelId: string;
+    password: string;
 }

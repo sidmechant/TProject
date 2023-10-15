@@ -20,6 +20,7 @@ import { CreateChannelDto, UpdateChannelDto, SearchChannelByNameDto, UpdateChann
 import { PrismaClient, Channel } from '@prisma/client';
 import { error } from 'console';
 import { ChatGateway } from 'src/chat/chat.gateway';
+import { ChannelRole } from '@prisma/client';
 import { ChannelSocketDto } from 'src/dto/chat.dto';
 import { channel } from 'diagnostics_channel';
 import { JwtAuthGuard } from 'src/auth/jwt.guard';
@@ -336,5 +337,29 @@ export class ChannelController {
       };
     }
   }
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////////// KICK BAN MUTE ////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 }

@@ -342,7 +342,7 @@ let ChannelService = class ChannelService {
         console.log("ICI");
         return channelSocketDto;
     }
-    async addMemberToChannel(channelId, userId) {
+    async addMemberToChannel(channelId, userId, password) {
         try {
             const channel = await this.prisma.channel.findFirst({
                 where: {
@@ -354,9 +354,12 @@ let ChannelService = class ChannelService {
             });
             if (!channel)
                 throw new Error('Canal non trouvé');
+            if (channel.password && password !== channel.password) {
+                throw new Error('Mot de passe incorrect');
+            }
             const isMember = channel.members.some((member) => member.userId === userId);
             if (isMember)
-                throw new Error('Member not found ....');
+                throw new Error('Membre non trouvé');
             const newMember = await this.prisma.channelMembership.create({
                 data: {
                     userId,
@@ -787,6 +790,24 @@ let ChannelService = class ChannelService {
             console.error('Error fetching available channels:', error);
             throw error;
         }
+    }
+    async findUserIdByPseudo(pseudo) {
+        const player = await this.prisma.player.findFirst({
+            where: { pseudo: pseudo },
+        });
+        if (!player) {
+            throw new Error('Joueur introuvable');
+        }
+        return player.userId;
+    }
+    async findChannelById(id) {
+        const channel = await this.prisma.channel.findUnique({
+            where: { id },
+        });
+        if (!channel) {
+            throw new common_1.NotFoundException(`Channel with ID ${id} not found`);
+        }
+        return channel;
     }
 };
 exports.ChannelService = ChannelService;

@@ -182,9 +182,10 @@ let FriendsService = class FriendsService {
         if (!friendRequest) {
             throw new common_1.NotFoundException('Demande d\'ami non trouvée ou déjà traitée.');
         }
-        return this.prisma.friend.update({
-            where: { id: friendRequest.id },
-            data: { status: 'declined' }
+        return await this.prisma.friend.delete({
+            where: {
+                id: friendRequest.id,
+            }
         });
     }
     async isBlockedByUser(senderId, receiverId) {
@@ -212,22 +213,40 @@ let FriendsService = class FriendsService {
         });
     }
     async findFriendById(id) {
-        const friend = await this.prisma.friend.findUnique({ where: { id } });
+        console.log("id = ", id);
+        const friend = await this.prisma.friend.findUnique({
+            where: {
+                id: id,
+            },
+        });
         if (!friend) {
             throw new common_1.NotFoundException('Ami non trouvé.');
         }
         return friend;
     }
-    async deleteFriend(id, userId) {
-        const friend = await this.findFriendById(id);
+    async deleteFriend(id_first, id_second) {
+        const friend = await this.prisma.friend.findFirst({
+            where: {
+                OR: [
+                    {
+                        userId: id_first,
+                        friendId: id_second,
+                    },
+                    {
+                        userId: id_second,
+                        friendId: id_first,
+                    },
+                ],
+            },
+        });
         if (!friend) {
-            throw new common_1.NotFoundException('Ami non trouvé.');
+            throw new common_1.NotFoundException('Friend relation not found');
         }
-        if (friend.userId !== userId && friend.friendId !== userId) {
-            throw new common_1.ForbiddenException('Vous n\'avez pas la permission de supprimer cet ami.');
-        }
-        await this.prisma.friend.delete({ where: { id } });
-        return friend;
+        return this.prisma.friend.delete({
+            where: {
+                id: friend.id,
+            },
+        });
     }
     async isFriends(userOneId, userTwoId) {
         const friendship = await this.prisma.friend.findFirst({

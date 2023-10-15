@@ -49,7 +49,7 @@ export declare class ChannelService {
     findChannelByName(name: string): Promise<Channel | null>;
     findChannelByNameOwnerId(name: string, ownerId: string): Promise<Channel | null>;
     getChannelSocketDtoByChannel(channel: Channel): Promise<ChannelSocketDto>;
-    addMemberToChannel(channelId: string, userId: number): Promise<Channel>;
+    addMemberToChannel(channelId: string, userId: number, password?: string): Promise<Channel>;
     removeMemberFromChannel(channelId: string, userId: number): Promise<Channel | null>;
     listMembersByChannelId(channelId: string): Promise<ChannelMembership[]>;
     addMessageToChannel(channelId: string, userId: number, content: string): Promise<Channel>;
@@ -65,4 +65,6 @@ export declare class ChannelService {
     removeChannelMembershipToUser(channelId: string, userId: number): Promise<boolean>;
     removeMemberToChannel(channelId: string, userId: number): Promise<ChannelMembership | null>;
     getAvailableChannelsForUser(userId: number): Promise<Channel[]>;
+    findUserIdByPseudo(pseudo: string): Promise<number>;
+    findChannelById(id: string): Promise<Channel>;
 }

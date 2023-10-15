@@ -71,9 +71,11 @@ const acceptFriendRequest = async (requesterId : any) => {
     }
   }
 
-  const deleteFriend = async (requesterId : any) => {
+  const deleteFriend = async (targetId : number) => {
     try {
-
+      console.log("Delete id: ", targetId);
+      const response = await axios.patch('/friends/delete', {targetId});
+      return response.data;
     } catch (error) {
       handleAxiosError(error);
     }
@@ -227,9 +229,9 @@ const acceptFriendRequest = async (requesterId : any) => {
     }
   }
 
-  export const getMissingChannels = async (userId: number) => {
+  export const getMissingChannels = async () => {
     try {
-      const response = await axios.get(`/channels/missingChannels/${userId}`);
+      const response = await axios.get('/channel/available-channels');
       return response.data;
     } catch (error) {
       handleAxiosError(error);
@@ -246,6 +248,23 @@ const acceptFriendRequest = async (requesterId : any) => {
       handleAxiosError(error);
     }
   }
+
+  export const joinPublic = async (channelId: string) => {
+    try {
+      await axios.patch('/channel/join-channel', {channelId});
+    } catch (error) {
+      handleAxiosError(error);
+    }
+  }
+
+  export const joinProtected = async (channelId: string, password: string) => {
+    try {
+      await axios.patch('/channel/join-channel-protected', {channelId, password});
+    } catch (error) {
+      handleAxiosError(error);
+    }
+  }
+
   
   export {
     sendFriendRequest,

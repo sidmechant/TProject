@@ -9,7 +9,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.JoinChannelDto = exports.CreateMessageDto = exports.GetChannelDto = exports.UpdateChannelByNameDto = exports.SearchChannelByNameDto = exports.UpdateChannelDto = exports.CreateChannelDto = void 0;
+exports.JoinChannelProtectedDto = exports.JoinChannelDto = exports.CreateMessageDto = exports.GetChannelDto = exports.UpdateChannelByNameDto = exports.SearchChannelByNameDto = exports.UpdateChannelDto = exports.CreateChannelDto = void 0;
 const class_validator_1 = require("class-validator");
 class CreateChannelDto {
 }
@@ -66,27 +66,22 @@ class CreateMessageDto {
 }
 exports.CreateMessageDto = CreateMessageDto;
 __decorate([
-    (0, class_validator_1.IsEmpty)(),
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], CreateMessageDto.prototype, "content", void 0);
 __decorate([
-    (0, class_validator_1.IsEmpty)(),
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], CreateMessageDto.prototype, "channelId", void 0);
 __decorate([
-    (0, class_validator_1.IsEmpty)(),
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], CreateMessageDto.prototype, "channelName", void 0);
 __decorate([
-    (0, class_validator_1.IsEmpty)(),
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], CreateMessageDto.prototype, "userId", void 0);
 __decorate([
-    (0, class_validator_1.IsEmpty)(),
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], CreateMessageDto.prototype, "recepient", void 0);
@@ -94,13 +89,20 @@ class JoinChannelDto {
 }
 exports.JoinChannelDto = JoinChannelDto;
 __decorate([
-    (0, class_validator_1.IsEmpty)(),
-    (0, class_validator_1.IsString)(),
-    __metadata("design:type", String)
-], JoinChannelDto.prototype, "userId", void 0);
-__decorate([
-    (0, class_validator_1.IsEmpty)(),
+    (0, class_validator_1.IsNotEmpty)(),
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], JoinChannelDto.prototype, "channelId", void 0);
+class JoinChannelProtectedDto {
+}
+exports.JoinChannelProtectedDto = JoinChannelProtectedDto;
+__decorate([
+    (0, class_validator_1.IsNotEmpty)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], JoinChannelProtectedDto.prototype, "channelId", void 0);
+__decorate([
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], JoinChannelProtectedDto.prototype, "password", void 0);
 //# sourceMappingURL=channel.dto.js.map

@@ -1,5 +1,5 @@
 import { ChannelMembership, Message, Player } from '@prisma/client';
-import { CreateChannelDto, CreateMessageDto, GetChannelDto, JoinChannelDto } from '../dto/channel.dto';
+import { CreateChannelDto, CreateMessageDto, GetChannelDto, JoinChannelDto, JoinChannelProtectedDto } from '../dto/channel.dto';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ChannelService } from 'src/channel/channel.service';
 import { Channel } from '@prisma/client';
@@ -45,14 +45,16 @@ export declare class ChannelsController {
         message: string;
         isSuccess: boolean;
     }>;
+    private getUserIdByPseudo;
     getAllUserChannelWithMembers(req: any): Promise<{
         channelId: string;
         channelName: string;
         ownerId: number;
         players: Player[];
     }[]>;
-    joinChannel(joinChannelDto: JoinChannelDto): Promise<boolean>;
-    leaveChannel(joinChannelDto: JoinChannelDto): Promise<boolean>;
+    joinChannel(req: any, joinChannelDto: JoinChannelDto): Promise<boolean>;
+    joinChannelProtected(req: any, joinChannelDto: JoinChannelProtectedDto): Promise<boolean>;
+    leaveChannel(req: any, joinChannelDto: JoinChannelDto): Promise<boolean>;
     getAvailableChannels(req: any): Promise<Channel[] | null>;
     sendMessage(req: any, createMessageDto: CreateMessageDto): Promise<Message[] | null>;
 }

@@ -174,9 +174,9 @@ export default function MainFriends({selectedFriend, setSelectedFriend}: friendP
         console.log('main selectedfriend : ', selectedFriend);
 
         switch (selectedFriend.status) {
-            case 'Accepted':
+            case 'accepted':
                 return AcceptedFriend(selectedFriend, setSelectedFriend);
-            case 'Pending':
+            case 'requested':
                 return PendingFriend(selectedFriend, setSelectedFriend);
             default:
                 break;

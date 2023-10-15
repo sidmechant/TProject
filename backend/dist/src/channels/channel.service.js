@@ -294,6 +294,15 @@ let ChannelService = class ChannelService {
             throw new Error('Validation failed');
         return channelSocketDto;
     }
+    async findChannelById(id) {
+        const channel = await this.prisma.channel.findUnique({
+            where: { id },
+        });
+        if (!channel) {
+            throw new common_1.NotFoundException(`Channel with ID ${id} not found`);
+        }
+        return channel;
+    }
 };
 exports.ChannelService = ChannelService;
 exports.ChannelService = ChannelService = __decorate([
