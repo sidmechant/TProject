@@ -267,8 +267,7 @@ export class ChannelsController {
     }
   }
 
-
-  @Post('join-channel')
+@Post('join-channel')
 async joinChannel(@Body() joinChannelDto: JoinChannelDto): Promise<{ statusCode: number, message: string, isSuccess: boolean }> {
   try {
     const { userId, channelId } = joinChannelDto;
@@ -299,5 +298,38 @@ async joinChannel(@Body() joinChannelDto: JoinChannelDto): Promise<{ statusCode:
     };
   }
 }
+
+@Post('leave-channel')
+async leaveChannel(@Body() joinChannelDto: JoinChannelDto): Promise<{ statusCode: number, message: string, isSuccess: boolean }> {
+  try {
+    const { userId, channelId } = joinChannelDto;
+
+    const isMemberRemoved = await this.channelService.removeMemberToChannel(channelId, Number(userId));
+    const isMembershipRemoved = await this.channelService.removeChannelMembershipToUser(channelId, Number(userId));
+
+    if (!isMemberRemoved || !isMembershipRemoved) {
+      throw new NotFoundException('User or channel not found.');
+    }
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'User left the channel successfully.',
+      isSuccess: true,
+    };
+  } catch (error) {
+    if (error instanceof HttpException) {
+      return {
+        statusCode: error.getStatus(),
+        message: error.message,
+        isSuccess: false
+      };
+    } return {
+      statusCode: HttpStatus.BAD_REQUEST,
+      message: 'Bad request',
+      isSuccess: false
+    };
+  }
+}
+
 
 }
