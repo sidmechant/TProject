@@ -1,15 +1,16 @@
-import './Chatbox.css';
-import * as oldAPI from '../Profil/FetchApi.tsx';
+import '../Chatbox.scss';
+import * as oldAPI from '../../Profil/FetchApi';
 import React, { useEffect, useState } from 'react';
-import './interface.ts';
-import * as API from './FetchAPiChat.tsx';
+import '../interface';
+import * as API from '../FetchAPiChat';
 
 interface friendProps {
     selectedFriend: any;
     setSelectedFriend: React.Dispatch<any>;
+    className?: string;
 }
 
-export default function NavbarFriends({selectedFriend, setSelectedFriend}: friendProps) {
+export default function NavbarFriends({selectedFriend, setSelectedFriend, className}: friendProps) {
 
 	//list friends and display friend profile modal on click
     const [ friends, setFriends ] = useState<any>(null);
@@ -39,7 +40,7 @@ export default function NavbarFriends({selectedFriend, setSelectedFriend}: frien
     const findClass = 'hover:bg-black/10 h-10 min-h-[3rem] w-[96%] mx-1 bg-black/30 border border-1 mt-4 flex items-center justify-center text-white';
 
 	return (
-		<div className='newNavMain bg-black/10 flex flex-col overflow-auto'>
+		<div className={`newNavMain bg-black/10 ${className} flex-col overflow-auto`}>
             <button key={-1}
                 onClick={() => selectFriend(null)}
                 className={findClass}

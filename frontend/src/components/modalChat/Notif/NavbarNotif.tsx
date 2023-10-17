@@ -1,4 +1,4 @@
-import './Chatbox.css';
+import '../Chatbox.scss';
 
 export default function NavbarNotif() {
 

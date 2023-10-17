@@ -7,6 +7,13 @@ import { Public } from 'src/auth/public.decorator';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
+
+  @UseGuards(JwtAuthGuard)
+  @Get('me')
+  getUserFromId(@Req() req) {
+    return this.usersService.findOne(req.userId);
+  }
+
  @UseGuards(JwtAuthGuard)
   @Get('id')
   getMyUSer(@Body() { id }: { id: number }, req: Request){

@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, UseGuards, Param, Req, HttpException, Http
 import { Socket } from 'socket.io';
 import { AuthUser } from 'src/jwt/auth-user.decorator';
 import { ChannelMembership, Message, Player, User } from '@prisma/client';
-import { CreateChannelDto, CreateMessageDto, GetChannelDto, JoinChannelDto, JoinChannelProtectedDto } from '../dto/channel.dto';
+import { CreateChannelDto, CreateMessageDto, GetChannelDto, JoinChannelDto, JoinChannelProtectedDto, ListMessageDTO, SendMessageDTO } from '../dto/channel.dto';
 import { SkipThrottle } from '@nestjs/throttler';
 import { JwtAuthGuard } from 'src/auth/jwt.guard';
 import { EventEmitter2 } from '@nestjs/event-emitter';
@@ -14,7 +14,7 @@ import { error } from 'console';
 import { ChatGateway } from 'src/chat/chat.gateway';
 import { RolesGuard } from './channel.guard';
 import { PrismaService } from 'prisma/prisma.service';
-import { centroid } from 'math/vec2';
+import { SocketGateway } from 'src/socket/socket.gateway';
 
 
 @SkipThrottle()
@@ -27,14 +27,41 @@ export class ChannelsController {
     private readonly events: EventEmitter2,
     private readonly channelService: ChannelService,
     private readonly chatGateway: ChatGateway,
-    private readonly prisma: PrismaService
+    private readonly prisma: PrismaService,
+    private readonly io: SocketGateway,
   ) { }
 
-  @Get('test')
-  test() {
-    this.logger.log(`TEST SUCCESS ...`);
-    this.chatGateway.handletest(null);
-    return;
+  @Post('add-message-channel')
+  async addMessageToChannel(@Body() payload: SendMessageDTO): Promise<{ statusCode: number, message: string, isSuccess: boolean }> {
+    try {
+      const channelId = payload.channelId;
+      const userId = Number(payload.userId);
+
+      const {channel, message} = await this.channelService.addMessageToChannel(channelId, userId, payload.message);
+      const updatedChannel = channel;
+      if (!updatedChannel)
+        throw new NotFoundException('Channel not found.');
+
+      //this.events.emit('newMessage', {channelId, message});
+      this.io.handleSendMessage({channelId, message});
+      return {
+        statusCode: HttpStatus.OK,
+        message: 'Message added to the channel successfully.',
+        isSuccess: true,
+      };
+    } catch (error) {
+      if (error instanceof HttpException) {
+        return {
+          statusCode: error.getStatus(),
+          message: error.message,
+          isSuccess: false
+        };
+      } return {
+        statusCode: HttpStatus.BAD_REQUEST,
+        message: 'Bad request',
+        isSuccess: false
+      }
+    }
   }
 
   @Post('created-channel')
@@ -62,6 +89,8 @@ export class ChannelsController {
       this.logger.debug(`begin event ${channelSocketDto}`);
       this.chatGateway.handleChannelCreate(channelSocketDto);
       this.logger.debug(`EndPoint ${channelSocketDto}`);
+
+      this.io.handleNewChannel(newChannel);
 
       return {
         statusCode: HttpStatus.CREATED,
@@ -173,10 +202,12 @@ export class ChannelsController {
     }
   }
 
-  @Get('list-message-channel')
-  async listMessageByChannelId(getChannelDto: GetChannelDto): Promise<{ statusCode: number, message: string, isSuccess: boolean, messages: Message[] }> {
+  @Get('list-message-channel/:channelId')
+  async listMessageByChannelId(@Param() payload: ListMessageDTO): Promise<{ statusCode: number, message: string, isSuccess: boolean, messages: Message[] }> {
     try {
-      const messages = await this.channelService.listMessageByChannelId(getChannelDto.channelId);
+
+      console.log("listmsg chanId: ", payload.channelId);
+      const messages = await this.channelService.listMessageByChannelId(payload.channelId);
       if (!messages)
         throw new NotFoundException('Channel not found');
 
@@ -188,6 +219,8 @@ export class ChannelsController {
       };
 
     } catch (error) {
+
+      console.log("listmsg PROBLEME");
       if (error instanceof HttpException) {
         return {
           statusCode: error.getStatus(),
@@ -203,47 +236,6 @@ export class ChannelsController {
       }
     }
   }
-
-  @Post('add-message-channel')
-  async addMessageToChannel(@Body() getChannelDto: GetChannelDto, @Body('content') content: string): Promise<{ statusCode: number, message: string, isSuccess: boolean }> {
-    try {
-      const channelId = getChannelDto.channelId;
-      const userId = Number(getChannelDto.userId);
-
-      const updatedChannel = await this.channelService.addMessageToChannel(channelId, userId, content);
-      if (!updatedChannel)
-        throw new NotFoundException('Channel not found.');
-
-      return {
-        statusCode: HttpStatus.OK,
-        message: 'Message added to the channel successfully.',
-        isSuccess: true,
-      };
-    } catch (error) {
-      if (error instanceof HttpException) {
-        return {
-          statusCode: error.getStatus(),
-          message: error.message,
-          isSuccess: false
-        };
-      } return {
-        statusCode: HttpStatus.BAD_REQUEST,
-        message: 'Bad request',
-        isSuccess: false
-      }
-    }
-  }
-
-
-
-
-
-
-
-
-
-
-
 
   ////////////////////////////////////////////////////////////////// KICK MUTE CONTROLLER/////////////////////////////////////////////////////////////////////////////////////////
   private async getUserIdByPseudo(pseudo: string): Promise<number> {
@@ -381,6 +373,7 @@ export class ChannelsController {
   async joinChannelProtected(@Req() req, @Body() joinChannelDto: JoinChannelProtectedDto): Promise<boolean> {
     try {
       const { channelId, password } = joinChannelDto;
+      //const decryptedPass = this.channelService.decrypt(password);
       const userId: number = req.userId;
 
       this.logger.debug(`Join-channel-protected ${userId} ${channelId} ${password}`);

@@ -127,7 +127,10 @@ export class ChannelService {
       if (type === 'protected' && !password)
         throw new HttpException('password not found', HttpStatus.BAD_REQUEST);
 
-      const hashedPassword: string = type === 'protected' ? await this.encrypt(password) : null;
+      let hashedPassword: string | null = null;
+
+      if (type === 'protected')
+        hashedPassword = this.encrypt(password);
 
       const channel: Channel = await this.prisma.channel.create({
         data: {
@@ -420,10 +423,13 @@ export class ChannelService {
       if (!channel)
         throw new Error('Canal non trouvé');
   
-      if (channel.password && password !== channel.password) {
-        throw new Error('Mot de passe incorrect');
+      if (channel.password) {
+        if (password !== this.decrypt(channel.password)) {
+          throw new Error('Mot de passe incorrect');
+        }
       }
   
+      console.log("PASSWORD CHECK OK");
       const isMember = channel.members.some((member) => member.userId === userId);
       if (isMember)
         throw new Error('Membre non trouvé');
@@ -517,7 +523,7 @@ export class ChannelService {
     }
   }
 
-  async addMessageToChannel(channelId: string, userId: number, content: string): Promise<Channel> {
+  async addMessageToChannel(channelId: string, userId: number, content: string): Promise<{channel: Channel, message: Message}> {
     try {
       const channel = await this.prisma.channel.findFirst({
         where: {
@@ -530,14 +536,14 @@ export class ChannelService {
       if (!channel)
         throw new Error('Cannal not found');
 
-      const newMessage = await this.prisma.message.create({
+      const message = await this.prisma.message.create({
         data: {
           content,
           channelId,
           userId,
         },
       });
-      channel.messages.push(newMessage);
+      channel.messages.push(message);
 
       await this.prisma.channel.update({
         where: {
@@ -549,7 +555,7 @@ export class ChannelService {
           },
         },
       });
-      return channel;
+      return {channel, message};
     } catch (error) {
       return null;
     }

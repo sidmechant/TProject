@@ -1,21 +1,21 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion } from "framer-motion"
 import { BsChatDots, BsFillChatLeftTextFill } from 'react-icons/bs';
-import { AiOutlineClose, AiOutlineSend } from 'react-icons/ai';
+import { AiOutlineClose, AiOutlineSend, AiOutlineMenu } from 'react-icons/ai';
 import { PiNotificationFill } from 'react-icons/pi';
 import { FaUserFriends } from 'react-icons/fa';
 import { MdChatBubble, MdMarkChatUnread} from 'react-icons/md';
 import { BsToggleOn, BsToggleOff } from 'react-icons/bs';
-import './Chatbox.css';
+import './Chatbox.scss';
 import { Slider, SliderFilledTrack, SliderThumb, SliderTrack, Input } from "@chakra-ui/react";
-import NavbarChat from './NavbarChat.tsx';
-import NavbarFriends from './NavbarFriends.tsx';
-import NavbarNotif from './NavbarNotif.tsx';
+import NavbarChat from './Chat/NavbarChat.tsx';
+import NavbarFriends from './Friends/NavbarFriends.tsx';
+import NavbarNotif from './Notif/NavbarNotif.tsx';
 import * as oldAPI from '../Profil/FetchApi.tsx';
 import * as API from './FetchAPiChat.tsx';
-import MainChat from './MainChat.tsx';
-import MainFriends from './MainFriends.tsx';
-import MainNotif from './MainNotif.tsx';
+import MainChat from './Chat/MainChat.tsx';
+import MainFriends from './Friends/MainFriends.tsx';
+import MainNotif from './Notif/MainNotif.tsx';
 
 interface User {
     id: number;
@@ -28,29 +28,45 @@ function ChatMain(myUser: any) {
 	const [ menu, setMenu ] = useState<number>(1);
 	const [ selectedFriend, setSelectedFriend] = useState<any>(null);
 	const [ selectedChat, setSelectedChat] = useState<any>(-1);
+	const [ openNav, setOpenNav ] = useState<number>(1);
 
 	const [ navStyles, setNavStyles ] = useState({
 		NavOne: 'newNavOne',
 		NavTwo: 'newNavTwo',
 		NavThree: 'newNavThree',
+		NavFour: 'newNavFour',
 	});
 
     const user = myUser.myUser as User;
+
+	const changeDisposition = () => {
+
+		if (openNav === 1)
+			setOpenNav(2);
+		else
+			setOpenNav(1);
+	};
+
+	useEffect(() => {
+		document.documentElement.style.setProperty('--grid-placement', openNav.toString());
+	  }, [openNav]);
 
 	useEffect(() => {
 		switch (menu) {
 			case 1:
 				setNavStyles({
-					NavOne: 'newNavOne bg-black/10 border-r-2 text-white flex justify-center items-center',
-					NavTwo: 'newNavTwo border-b-2 text-white flex justify-center items-center',
-					NavThree: 'newNavThree border-b-2 text-white flex justify-center items-center',
+					NavOne: 'newNavOne bg-black/10 text-white flex justify-center items-center',
+					NavTwo: 'newNavTwo text-white flex justify-center items-center',
+					NavThree: 'newNavThree text-white flex justify-center items-center',
+					NavFour: 'newNavFour flex justify-center items-center',
 				});
 				break;
 			case 2:
 				setNavStyles({
-					NavOne: 'newNavOne border-b-2 text-white flex justify-center items-center',
-					NavTwo: 'newNavTwo bg-black/10 text-white border-r-2 border-l-2 flex justify-center items-center',
-					NavThree: 'newNavThree border-b-2 text-white flex justify-center items-center',
+					NavOne: 'newNavOne text-white flex justify-center items-center',
+					NavTwo: 'newNavTwo bg-black/10 text-white flex justify-center items-center',
+					NavThree: 'newNavThree text-white flex justify-center items-center',
+					NavFour: 'newNavFour flex justify-center items-center',
 				});
 				break;
 			case 3:
@@ -58,11 +74,13 @@ function ChatMain(myUser: any) {
 					NavOne: 'newNavOne border-b-2 text-white flex justify-center items-center',
 					NavTwo: 'newNavTwo border-b-2 text-white flex justify-center items-center',
 					NavThree: 'newNavThree bg-black/10 text-indigo-400 border-l-2 flex justify-center items-center',
+					NavFour: 'newNavFour flex justify-center items-center',
 				});
 				break;
 			default:
 				break;
 		}
+
 	}, [menu]);
 
 	return (
@@ -76,19 +94,22 @@ function ChatMain(myUser: any) {
 						<FaUserFriends />
 					</button>
 					<button id='3' onClick={() => setMenu(3)} className={navStyles.NavThree}>
-						{menu === 3 ?
-							<div className='animate-spin duration-500'>
-								<PiNotificationFill />
-							</div> :
-							<PiNotificationFill />
+						<PiNotificationFill />
+					</button>
+					<button id='4' onClick={() => changeDisposition()} className={navStyles.NavFour}>
+						{openNav === 1
+							? <div className='text-white'><AiOutlineMenu /></div>
+							: <div className='text-white/50'>
+								<AiOutlineMenu />
+							</div>
 						}
 					</button>
 				</div>
-				{menu === 1 
-					? <NavbarChat selectedChat={selectedChat} setSelectedChat={setSelectedChat}/>
-					: (menu === 2 ? <NavbarFriends selectedFriend={selectedFriend} setSelectedFriend={setSelectedFriend}/>
+				{openNav ? (menu === 1 
+					? <NavbarChat selectedChat={selectedChat} setSelectedChat={setSelectedChat} className={`${openNav === 2 ? 'flex' : 'hidden'}`}/>
+					: (menu === 2 ? <NavbarFriends selectedFriend={selectedFriend} setSelectedFriend={setSelectedFriend} className={`${openNav === 2 ? 'flex' : 'hidden'}`}/>
 					: <NavbarNotif />
-				)}
+				))	: <></>}
 			</div>
 			{menu === 1 
 				? <MainChat selectedChat={selectedChat} setSelectedChat={setSelectedChat}/> 
@@ -191,7 +212,7 @@ export default function ChatBox({ready}: {ready: boolean}) {
 								<Slider
 									value={chatRatio}
 									min={15}
-									max={40}
+									max={65}
 									aria-label="slider-chat"
 									colorScheme="gray"
 									onChange={(val) => setChatRatio(val)}

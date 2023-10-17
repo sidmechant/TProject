@@ -12,6 +12,14 @@ import { User } from '@prisma/client';
 @Injectable()
 export class UsersService {
     constructor(private prisma:PrismaService) {}
+
+    async findOne(id: number) {
+      return await this.prisma.user.findUnique({
+        where: {
+          id: id,
+        },
+      });
+    }
     async getMyUsers(id: number, req: Request) {
       try {
         // Convertir l'argument id en un nombre entier

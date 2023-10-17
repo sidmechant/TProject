@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import * as API from './FetchAPiChat';
-import './Chatbox.css';
+import * as API from '../FetchAPiChat';
+import '../Chatbox.scss';
 import { BiSolidCrown } from 'react-icons/bi';
 import { IconType } from 'react-icons';
 import { FaUsers, FaUser, FaUserTie, FaUserAltSlash, FaUserCog, FaUserMinus, FaUserPlus } from 'react-icons/fa';
+import socket from '../../../socket';
 
 interface ConversationProps {
 
@@ -17,6 +18,7 @@ interface ChatProps {
 	
 	selectedChat: any;
 	setSelectedChat: React.Dispatch<any>;
+	className?: string;
 }
 
 interface Channel {
@@ -41,22 +43,58 @@ function OptionConversation({onClick, message}: ConversationProps) {
 
 function ButtonConversation({onClick, message, id, icon}: ConversationProps) {
 
+	if (icon) {
+		return (
+			<button
+			id={id}
+			key={id}
+			onClick={onClick}
+			className='hover:bg-white/10 h-10 min-h-[4rem] w-[96%] mx-1 bg-white/20 border border-1 mt-4 flex items-center justify-start text-white'>
+				<div className='mx-3'>{icon}</div>
+				<div>{message}</div>
+			</button>
+		)
+	}
 	return (
 		<button
 		id={id}
 		key={id}
 		onClick={onClick}
-		className='hover:bg-white/10 h-10 min-h-[4rem] w-[96%] mx-1 bg-white/20 border border-1 mt-4 flex items-center justify-evenly text-white'>
-			<div>{icon}</div>
+		className='hover:bg-white/10 h-10 min-h-[4rem] w-[96%] mx-1 bg-white/20 border border-1 mt-4 flex items-center justify-start text-white'>
+			<div className='mx-5'>{icon}</div>
 			<div>{message}</div>
 		</button>
 	)
 }
 
-export default function NavbarChat({selectedChat, setSelectedChat}: ChatProps) {
+export default function NavbarChat({selectedChat, setSelectedChat, className}: ChatProps) {
 
 	const [ myChannels, setMyChannels ] = useState<Channel[] | null>(null);
+	const [ reload, setReload ] = useState<boolean>(false);
 	const myUser = API.getMyself();
+
+	useEffect(() => {
+
+		const handleNewChannel = (channel: Channel) => {
+
+			console.log("handleNewChannel: ", channel);
+			if (channel.type === 'Private') {
+				if (channel.ownerId === myUser.userId) {
+					//setMyChannels((prevChannels) => [...(prevChannels || []), channel]);
+					setReload(!reload);
+				}
+			} else {
+				//setMyChannels((prevChannels) => [...(prevChannels || []), channel]);
+				setReload(!reload);
+			}
+		};
+
+		socket.on('newChannel', handleNewChannel);
+
+		return () => {
+			socket.off('newChannel', handleNewChannel);
+		}
+	}, []);
 
 	useEffect(() => {
 
@@ -70,10 +108,10 @@ export default function NavbarChat({selectedChat, setSelectedChat}: ChatProps) {
 			setMyChannels(result);
 		});
 
-	}, []);
+	}, [reload]);
 
 	return (
-		<div className='newNavMain bg-black/10 flex flex-col items-center overflow-auto'>
+		<div className={`newNavMain bg-black/10 ${className} flex-col items-center overflow-auto`}>
 			<OptionConversation
 			message='Create'
 			onClick={() => {
@@ -93,8 +131,9 @@ export default function NavbarChat({selectedChat, setSelectedChat}: ChatProps) {
 				message={channel.channelName}
 				icon={channel.ownerId === myUser.id ? <BiSolidCrown /> : undefined}
 				onClick={() => {
-					console.log(`set conv ${channel.id}`);
-					setSelectedChat(channel.id);
+					socket.emit('leaveChannel', selectedChat.channelId);
+					setSelectedChat(channel);
+					socket.emit('joinChannel', channel.channelId);
 				}}
 				/>
 			))}

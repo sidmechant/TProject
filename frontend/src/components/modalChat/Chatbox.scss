@@ -1,3 +1,7 @@
+:root {
+	--grid-placement: 2;
+}
+
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
@@ -43,7 +47,7 @@
 .newChatBox {
 
 	display: grid;
-	grid-template-rows: 8% 1fr 15%;
+	grid-template-rows: 8% 9% 1fr 15%;
 	grid-template-columns: 30% 1fr;
 }
 
@@ -53,16 +57,18 @@
 
 .newNav {
 	display: grid;
-	grid-area: 2 / 1 / span 2 / span 1;
+	grid-area: 2 / 1 / span 3 / span 2;
 	grid-template-rows: 10% 1fr;
-	grid-template-columns: 1fr;
+	grid-template-columns: 30% 1fr;
 }
 
 .newNavMenu {
-	grid-area: 1 / 1 / span 1 / span 1;
+	grid-area: 1 / 1 / span 1 / span 2;
 	display: grid;
 	grid-template-rows: 1fr;
-	grid-template-columns: 1fr 1fr 1fr;
+	grid-template-columns: 30% 30% 30% 10%;
+	border-style: solid;
+	border-bottom-width: 2px;
 }
 
 .newNavOne {
@@ -79,15 +85,26 @@
 
 }
 
+.newNavFour {
+	grid-area: 1 / 4 / span 1 / span 1;
+
+}
+
 .newNavMain {
 
 	grid-area: 2 / 1 / span 1 / span 1;
+	border-style: solid;
 }
 
-.newMain, .MainChat, .MainFriends, .MainNotif {
-	grid-area: 2 / 2 / span 2 / span 1;
+.newMain {
+	grid-area: 3 / (var(--grid-placement)) / span 2 / span 2;
+
+}
+
+.newChat {
+	grid-area: 3 / (var(--grid-placement)) / span 1 / span 2;
 }
 
 .newMessage {
-	grid-area: 3 / 2 / span 1 / span 1;
+	grid-area: 4 / (var(--grid-placement)) / span 1 / span 2;
 }

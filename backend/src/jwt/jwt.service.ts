@@ -15,7 +15,7 @@ export class JwtService {
    * @returns {string} - Le token JWT généré.
    */
   createToken(userId: string, sessionId: string): string {
-    console.log('CREATE TOKEN');
+    //console.log('CREATE TOKEN');
     const payload = {
       sub: userId,
       sessionId: sessionId

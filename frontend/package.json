@@ -44,10 +44,12 @@
     "react-icons": "^4.11.0",
     "react-lazy-with-preload": "^2.2.1",
     "react-router-dom": "^6.14.2",
+    "sass": "^1.69.3",
     "socket.io-client": "^4.7.2",
     "styled-components": "^6.0.7",
     "three": "^0.155.0",
     "three-custom-shader-material": "^5.4.0",
+    "vuera-ts": "^1.0.8",
     "xstate": "^4.38.2"
   },
   "devDependencies": {

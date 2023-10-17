@@ -109,11 +109,9 @@ export default function Home({setReady}:{setReady:React.Dispatch<SetStateAction<
       </LoadingContext.Provider>
     )
   }
-
+  
   return (
-    <>
     <ChatBox />
-    </>
   )
   
   return (

@@ -35,6 +35,22 @@ export class UpdateChannelByNameDto {
   updateData: UpdateChannelDto;
 }
 
+export class SendMessageDTO {
+  @IsString()
+  channelId: string;
+
+  @IsString()
+  userId: string;
+
+  @IsString()
+  message: string;
+}
+
+export class ListMessageDTO {
+  @IsString()
+  channelId: string;
+}
+
 export class GetChannelDto {
     @IsString()
     name?: string;

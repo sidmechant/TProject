@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { BsExclamationSquare } from 'react-icons/bs';
 
 axios.defaults.baseURL = 'http://localhost:3000'; // Base URL
 axios.defaults.withCredentials = true; // Permet d'envoyer les credentials (comme les cookies) lors de chaque requête
@@ -42,6 +43,41 @@ export function getCookie(name: string) {
 	  }
 	}
 	return null;
+}
+
+interface sendMessageProps {
+  channelId: string;
+  userId: string;
+  message: string;
+}
+
+export const getUser = async () => {
+
+  const response =  await axios.get('/users/me');
+
+  return response.data;
+}
+
+export const sendMessage = async (payload: sendMessageProps) => {
+
+  try {
+    console.log(payload);
+    const response = await axios.post('/channel/add-message-channel', payload);
+
+    return response;
+  } catch (error) {
+    handleAxiosError(error);
+  }
+}
+
+export const listMessages = async (channelId: string) => {
+
+  try {
+    const response = await axios.get(`/channel/list-message-channel/${channelId}`);
+    return response.data.messages;
+  } catch (error) {
+    handleAxiosError(error);
+  }
 }
 
 const sendFriendRequest = async (receiverPseudo : any) => {
@@ -180,9 +216,11 @@ const acceptFriendRequest = async (requesterId : any) => {
 
   export async function createChannel(channelData: any, jwtToken: string | null, sessionToken: string | null) {
 
+    const user = await getUser();
+
     const data = {
       name: channelData.name,
-      username: 'engooh',
+      username: user.username,
       password: channelData.password,
       type: channelData.type.toLowerCase(),
     };
@@ -251,7 +289,8 @@ const acceptFriendRequest = async (requesterId : any) => {
 
   export const joinPublic = async (channelId: string) => {
     try {
-      await axios.patch('/channel/join-channel', {channelId});
+      const response = await axios.patch('/channel/join-channel', {channelId});
+      return response;
     } catch (error) {
       handleAxiosError(error);
     }
@@ -259,7 +298,8 @@ const acceptFriendRequest = async (requesterId : any) => {
 
   export const joinProtected = async (channelId: string, password: string) => {
     try {
-      await axios.patch('/channel/join-channel-protected', {channelId, password});
+      const response = await axios.patch('/channel/join-channel-protected', {channelId, password});
+      return response;
     } catch (error) {
       handleAxiosError(error);
     }

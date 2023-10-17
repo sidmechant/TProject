@@ -34,9 +34,9 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
    */
   async validate(@Req() request: Request, @Res() response: Response, id: string) {
     try {
-      console.log('VALIDATE TOKEN SIGN');
+      //console.log('VALIDATE TOKEN SIGN');
       const sessionId = this.jwtService.qgenerateUniqueSessionId(id);
-      console.log('SESSION ID ', sessionId);
+      //console.log('SESSION ID ', sessionId);
       const userId = Number(id);
 
 
@@ -46,7 +46,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
       }
 
       const token = this.jwtService.createToken(id, sessionId);
-	  console.log('TOKEN SIGN ', token);
+	  //console.log('TOKEN SIGN ', token);
       response.cookie('jwt_token', token, { httpOnly: false, sameSite: 'strict' }); // secure: true, to send cookies over HTTPS only, and sameSite: 'Strict' for CSRF protection.
           } catch (error) {
       throw new UnauthorizedException(error.message);

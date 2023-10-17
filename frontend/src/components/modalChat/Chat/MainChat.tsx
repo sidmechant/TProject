@@ -1,7 +1,8 @@
-import './Chatbox.css';
+import '../Chatbox.scss';
 import { motion } from "framer-motion"
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { AiOutlineSend } from 'react-icons/ai';
+import { BsShieldLock } from 'react-icons/bs';
 import {
 	FormControl,
 	FormLabel,
@@ -25,7 +26,8 @@ import {
 	ModalCloseButton,
 	useDisclosure,
   } from '@chakra-ui/react'
-import * as API from './FetchAPiChat';
+import * as API from '../FetchAPiChat';
+import socket from '../../../socket';
 
 interface ChatProps {
 	
@@ -57,82 +59,43 @@ function getCookie(name: string) {
 	return null;
 }
 
-function FindProtectedModal() {
-
-	const { isOpen, onOpen, onClose } = useDisclosure()
-  return (
-    <>
-      <Button onClick={onOpen}>Open Modal</Button>
-
-      <Modal isOpen={isOpen} onClose={onClose}>
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>Modal Title</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody>
-            PROTECTED
-          </ModalBody>
-
-          <ModalFooter>
-            <Button colorScheme='blue' mr={3} onClick={onClose}>
-              Close
-            </Button>
-            <Button variant='ghost'>Secondary Action</Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
-    </>
-  )
-}
-
-function FindPublicModal() {
-
-	const { isOpen, onOpen, onClose } = useDisclosure()
-  return (
-    <>
-      <Button onClick={onOpen}>Open Modal</Button>
-
-      <Modal isOpen={isOpen} onClose={onClose}>
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>Modal Title</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody>
-            PUBLIC
-          </ModalBody>
-
-          <ModalFooter>
-            <Button colorScheme='blue' mr={3} onClick={onClose}>
-              Close
-            </Button>
-            <Button variant='ghost'>Secondary Action</Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
-    </>
-  )
-
-}
-
 function FindConversation({user}: userProps) {
 	
 	const [ allConv, setAllConv ] = useState<Channel[] | null>(null);
 	const [ modal, setModal ] = useState<any>(null);
 	const [ password, setPassword ] = useState<string>('');
 	const { isOpen, onOpen, onClose } = useDisclosure();
-
+	const [ error , setError ] = useState<boolean>(false);
+	const [ reload, setReload ] = useState<boolean>(false);
 
 	useEffect(() => {
 
-		console.log("modal: ", modal);
-	}, [modal]);
+		const handleNewChannel = (channel: Channel) => {
+
+			console.log("handleNewChannel: ", channel);
+			if (channel.type === 'Private') {
+				if (channel.ownerId === user.userId) {
+					//setMyChannels((prevChannels) => [...(prevChannels || []), channel]);
+					setReload(!reload);
+				}
+			} else {
+				//setMyChannels((prevChannels) => [...(prevChannels || []), channel]);
+				setReload(!reload);
+			}
+		};
+
+		socket.on('newChannel', handleNewChannel);
+
+		return () => {
+			socket.off('newChannel', handleNewChannel);
+		}
+	}, []);
 
 	useEffect(() => {
 
 		const getConv = async () => {
 			const fetchedConv = await API.getMissingChannels(); //need to replace 1 with userId
 
-			console.log("FIND CONV: ", fetchedConv);
 			return fetchedConv;
 		}
 
@@ -140,7 +103,7 @@ function FindConversation({user}: userProps) {
 			setAllConv(result);
 		});
 
-	}, []);
+	}, [reload]);
 
 	const submitPublic = async () => {
 
@@ -151,6 +114,13 @@ function FindConversation({user}: userProps) {
 	const submitProtected = async () => {
 
 		const response = await API.joinProtected(modal.id, password);
+		if (!response || response.data === false) {
+			setError(true);
+			setPassword('');
+		} else {
+			setError(false);
+			onClose();
+		}
 		console.log("Submit protected: ", response);
 	};
 
@@ -161,7 +131,7 @@ function FindConversation({user}: userProps) {
 
 	return (
 		<>
-			<div className="bg-slate-500/30 MainChat flex justify-center items-start text-black">
+			<div className="bg-slate-500/30 newMain flex justify-center items-start text-black">
 				<Accordion allowToggle className='w-full h-full flex flex-col overflow-auto'>
 					<AccordionItem key='public' className='bg-white/70'>
 						<h2>
@@ -184,7 +154,10 @@ function FindConversation({user}: userProps) {
 						<h2>
 							<AccordionButton>
 								<Box as='span' flex='1' textAlign='left'>
-									Protected channels
+									<div className='flex justify-start items-center'>
+										<div className='mr-5'>Protected channels</div>
+										<BsShieldLock />
+									</div>
 								</Box>
 								<AccordionIcon />
 							</AccordionButton>
@@ -213,6 +186,8 @@ function FindConversation({user}: userProps) {
 						name="password"
 						type='password'
 						value={password}
+						errorBorderColor='pink.300'
+						isInvalid={error}
 						onChange={handleChange}
 					  />)
 					: ''
@@ -228,6 +203,7 @@ function FindConversation({user}: userProps) {
 							submitProtected();
 						else
 							submitPublic();
+						onClose
 					}}>Join Channel</Button>
 				</ModalFooter>
 				</ModalContent>
@@ -287,7 +263,7 @@ function CreateConversation({user}: userProps) {
 	const isPasswordInputDisabled = formData.type !== 'Protected';
   
 	return (
-	  <div className="bg-slate-500/30 MainChat flex justify-center items-center text-black">
+	  <div className="bg-slate-500/30 newMain flex justify-center items-center text-black">
 		<div className="w-5/6 flex flex-col">
 		  <form onSubmit={handleSubmit}>
 			<FormControl>
@@ -310,7 +286,7 @@ function CreateConversation({user}: userProps) {
 				<Input
 				  id='name'
 				  bg={'white'}
-				  placeholder={formData.invalid ? "Name min required size is 3" : "Name"}
+				  placeholder={formData.invalid ? "Name min size required is 3" : "Name"}
 				  name="name"
 				  isInvalid={formData.invalid}
 				  errorBorderColor={'red.300'}
@@ -358,61 +334,93 @@ export default function MainChat({selectedChat, setSelectedChat}: ChatProps) {
 
     const [ value, setValue ] = useState<string>('');
     const [ inputFocus, setInputFocus ] = useState<boolean>(false);
-	const id = '1';
 	const user = API.getMyself();
-	const [messages, setMessages] = useState<MessageProps[]>([
-		{
-		  photo: 'https://i.imgur.com/G6zfcso.gif',
-		  pseudo: 'Ricko',
-		  content: 'Ah les humains',
-		  id: '1',
-		},
-		{
-		  photo: 'https://i.imgur.com/eQJ86KI.jpeg',
-		  pseudo: 'La sidance',
-		  content: 'Grand texte teh les plus grands auteurs reconnus de porte de clichy, force au double diplome et aux baveux de toute lile de france c utile pour se defendre en cas de litige et surtout pour verifier si la div peut setendre correctement carrement je dois rajouter encore bcp de texte c fatiguant sah de devoir faire ca juste pour voir si ca passe ou pas',
-		  id: '91763',
-		},
-		{
-		  photo: 'https://i.imgur.com/G6zfcso.gif',
-		  pseudo: 'Ricko',
-		  content: 'Super beau message de fin',
-		  id: '1',
-		},
-	  ]);
+	const [ messages, setMessages ] = useState<any>(null);
+	const [ channel, setChannel ] = useState<any>(null);
+	const chatRef = useRef<HTMLDivElement>(null);
 
-	  const self = 'my-5 px-5 bg-white flex min-h-24 w-64 mx-3 border border-1 border-black rounded-xl';
+	
+	const self = 'my-5 px-5 bg-slate-700/20 text-white flex min-h-24 w-64 mx-3 border border-1 border-black rounded-xl';
  
-	  const other = 'my-5 px-5 bg-indigo-400 justify-self-end flex min-h-24 w-4/6 max-w-sm mx-3 border border-1 border-black rounded-xl';
+	const other = 'my-5 px-5 bg-indigo-700/40 text-white justify-self-end flex min-h-24 w-4/6 max-w-sm mx-3 border border-1 border-black rounded-xl';
 
     const handleValue = (event: any) => setValue(event.target.value);
+	//socket.emit("joinChannel", "30");
 
-    const submitMessage = () => {
+	useEffect(() => {
 
-		const newMessage = value[0] === '.' ? {
-			photo: 'https://i.imgur.com/G6zfcso.gif',
-			pseudo: 'Ricko',
-			content: value,
-			id: '1',
-		} : {
-			photo: 'https://i.imgur.com/eQJ86KI.jpeg',
-			pseudo: 'La sidance',
-			content: value,
-			id: '91763',
-		};
+		const elem = document.getElementById('chatmain');
 
+		if (elem) {
+			elem.scrollTop = elem.scrollHeight;
+		}
+	}, [messages]);
+	useEffect(() => {
 
-		setMessages((prevMessages) => [...prevMessages, newMessage]);
-		console.log(value);
+		const retrieveMessages = async () => {
+			if (selectedChat && selectedChat !== -1 && selectedChat !== -2) {
+				const res = await API.listMessages(selectedChat.channelId);
+				console.log("res chat: ", res);
+				console.log("sChat: ", selectedChat);
+				if (res)
+					return res;
+			}
+		}
+
+		retrieveMessages().then((response: any) => setMessages(response));
+	}, [selectedChat]);
+
+	useEffect(() => {
+
+		if (selectedChat && selectedChat !== -1 && selectedChat !== -2) {
+			socket.emit('joinChannel', selectedChat.channelId);
+			setChannel(selectedChat.channelId);
+		}
+
+		return () => {
+			if (channel) {
+				socket.emit('leaveChannel', channel);
+			}
+			setChannel(null);
+		}
+
+	}, []);
+
+	useEffect(() => {
+
+		const handleNewMessage = (payload: any) => {
+
+			if (payload.channelId === channel) {
+				console.log('received message: ', payload);
+				setMessages((prevMessages: any) => [...prevMessages, payload.message]);
+				if (chatRef.current) {
+					chatRef.current.scrollTop = chatRef.current.scrollHeight;
+				}
+			}
+		}
+		socket.on('newMessage', handleNewMessage);
+
+		return () => {
+			socket.off('newMessage', handleNewMessage);
+		}
+
+	}, [channel, messages]);
+
+	const submitMessage = async () => {
+
+		const res = await API.sendMessage({channelId: selectedChat.channelId, userId: `${user.userId}`, message: value});
+
+		console.log("after submit: ", res);
+		console.log(selectedChat);
 		setValue('');
-	};
+	}
 
-	console.log(selectedChat);
     const handleEnterInput = (event: any) => {
 
 		if (event.key === 'Enter' && inputFocus) {
 			console.log("pressed ENTER");
 			submitMessage();
+			setValue('');
 		}
 	};
 
@@ -422,27 +430,36 @@ export default function MainChat({selectedChat, setSelectedChat}: ChatProps) {
 		return <FindConversation user={user}/>;
 	}
 
+	const getPlayerFromMessage = (userId: number) => {
+
+		const player = selectedChat.players.find((player: any) => player.userId === userId);
+		return player;
+	}
+
     return (
         <>
-        <div className="bg-slate-500/30 MainChat">
-			<div className='grid overflow-auto h-5/6'>
-      {messages &&
-        messages.map((message, index) => (
-          <div className={message.id == id ? self : other} key={index}>
-            <div className='my-5'>
-              <div className='h-12 w-12 min-h-12 min-w-12 rounded-full'>
-                <img className='object-fill rounded-full' src={message.photo} alt="Profile" />
-              </div>
-            </div>
-            <div className='max-w-sm my-5 mx-5'>
-              <strong className='flex text-start'>{message.pseudo}</strong>
-              <div className='break-all'>{message.content}</div>
-            </div>
-          </div>
-        ))}
-    </div>
-		</div>
-			<div className="bg-slate-500/70 newMessage flex justify-center items-center">
+			<div id='chatmain' ref={chatRef} className='grid newChat bg-slate-500/ overflow-auto'>
+				{messages &&
+					messages.map((message: any, index: number) => {
+
+					const player = getPlayerFromMessage(message.userId);
+
+					return (
+						<div className={message.userId == user.userId ? self : other} key={index}>
+							<div className='my-5'>
+							<div className='h-12 w-12 min-h-12 min-w-12 rounded-full'>
+								<img className='object-fill rounded-full' src={player.urlPhotoProfile} alt="Profile" />
+							</div>
+							</div>
+							<div className='max-w-sm my-5 mx-5'>
+							<strong className='flex text-start'>{player.pseudo}</strong>
+							<div className='break-all'>{message.content}</div>
+							</div>
+						</div>
+					)
+				})}
+    		</div>
+		<div className="newMessage bg-slate-500/10 flex justify-center items-center">
 				<Input
 				className='mx-5'
 				value={value}
@@ -462,7 +479,7 @@ export default function MainChat({selectedChat, setSelectedChat}: ChatProps) {
 				  hover:text-white'>
 					<AiOutlineSend />
 				</motion.button>
-			</div>
+		</div>
         </>
     );
 }

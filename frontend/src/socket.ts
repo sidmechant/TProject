@@ -21,9 +21,6 @@ const socket = io(URL, {
     autoConnect: true,
 });
 
-console.log("QUERY: ", socket.io.opts.query);
-console.log('NEW CONNECTION SOCKET WITH ', jwt_token);
-
 socket.connect();
 
 export default socket;

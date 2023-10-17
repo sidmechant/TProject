@@ -1,4 +1,4 @@
-import './Chatbox.css';
+import '../Chatbox.scss';
 import { motion } from "framer-motion"
 import { Input } from "@chakra-ui/react";
 import { useState } from 'react';

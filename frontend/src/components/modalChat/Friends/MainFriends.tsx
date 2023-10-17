@@ -1,10 +1,12 @@
-import './Chatbox.css';
+import '../Chatbox.scss';
 import { motion, AnimatePresence } from "framer-motion"
 import { useState, useEffect } from 'react';
 import { BiSolidLeftArrow, BiSolidRightArrow } from 'react-icons/bi';
-import * as oldAPI from '../Profil/FetchApi';
-import * as API from './FetchAPiChat';
+import * as oldAPI from '../../Profil/FetchApi';
+import * as API from '../FetchAPiChat';
 import { Tabs, TabList, TabPanels, Tab, TabPanel } from '@chakra-ui/react'
+import ProfilCard from './ProfileCard';
+import './Card.scss';
 
 interface friendProps {
     selectedFriend: any;
@@ -144,16 +146,45 @@ function PendingFriend(friend: any, setFriend: any) {
 export default function MainFriends({selectedFriend, setSelectedFriend}: friendProps) {
 
     const [ users, setUsers ] = useState<any>(null);
-    const [ userIdx, setUserIdx ] = useState<number>(0);
+    const [slidePosition, setSlidePosition] = useState(63);
 
-    const handleCreateFriendship = async () => {
+    const handleCreateFriendship = async (user: any) => {
 
-        const targetUser = users[userIdx];
+        const targetUser = user;
 
         const res = await API.sendFriendRequest(targetUser.pseudo);
 
         console.log(res);
     };
+
+    const handleRightCardClick = () => {
+
+        const pos = slidePosition;
+        let newPosition = slidePosition - 252;
+        
+
+        if (users && newPosition < -((users.length - 1) * 256)) {
+            newPosition = pos;
+        }
+
+    
+        setSlidePosition(newPosition);
+    };
+
+    const handleLeftCardClick = () => {
+
+
+        const pos = slidePosition;
+        let newPosition = slidePosition + 252;
+        
+    
+        if (newPosition > 252) {
+            newPosition = pos;
+        }
+    
+        setSlidePosition(newPosition);
+    };
+
 
     useEffect(() => {
 
@@ -165,6 +196,22 @@ export default function MainFriends({selectedFriend, setSelectedFriend}: friendP
         getUsers();
 
     }, []);
+
+    useEffect(() => {
+        const handleScroll = (e: WheelEvent) => {
+            if (e.deltaY > 0) {
+                handleRightCardClick();
+            } else if (e.deltaY < 0) {
+                handleLeftCardClick();
+            }
+        };
+    
+        window.addEventListener('wheel', handleScroll);
+    
+        return () => {
+            window.removeEventListener('wheel', handleScroll);
+        };
+    }, [slidePosition]);
 
     if (!users)
         return <></>
@@ -185,50 +232,77 @@ export default function MainFriends({selectedFriend, setSelectedFriend}: friendP
 
     return (
         <>
-        {users && 
-            <div className='bg-slate-500/50 flex flex-col MainFriends items-center justify-center'>
-                <div className='-translate-y-1/5 h-1/2 w-1/2 flex flex-col justify-center items-center'>
-                    <div className='flex w-full justify-around'>
-                        <button 
-                        onClick={() => {
-                            if (userIdx > 0)
-                                setUserIdx(userIdx - 1);
-                            else
-                                setUserIdx(users.length - 1);  
-                        }}
-                        className='mx-5 hover:text-white'><BiSolidLeftArrow/></button>
+            {users && 
+                <div style={{}} className='bg-slate-500/ newMain flex justify-center overflow-hidden'>
+                    <motion.div
+                    initial={{
+                        opacity: 0, scale: 0.5,
+                    }}
+                    animate={{
+                        opacity: 1, scale: 1,
+                        translateX: `${slidePosition}px`,
+                    }}
+                    transition={{ duration: 0.5 }}
+                    className='carousel-wrapper w-full flex items-center'>
+                    {users.map((user: any, index: number) => {
+                        
+                        if (index % 3 === 0) {
+                            return (
+                                <ProfilCard
+                                key={user.id}
+                                dataImage={user.urlPhotoProfile}
+                                header={<h1 className='ml-20 mb-16'>{user.pseudo}</h1>}
+                                content={<p></p>}   
+                                starter={-100}
+                                className='flex justify-center items-center h-3/6'
+                                onClick={() => handleCreateFriendship(user)}
+                                />
+                            )
+                        } else if (index % 3 === 1) {
+                            return (
+                                <ProfilCard
+                                key={user.id}
+                                dataImage={user.urlPhotoProfile}
+                                header={<h1 className='mb-16 ml-10'>{user.pseudo}</h1>}
+                                content={<p></p>}
+                                className='flex justify-center items-center mx-7 h-3/6'
+                                info='flex flex-col justify-center items-center'
+                                starter={0}
+                                onClick={() => handleCreateFriendship(user)}
 
-                        <AnimatePresence mode='wait'>
-                            <motion.img
-                                key={users[userIdx].urlPhotoProfile}
-                                src={users[userIdx].urlPhotoProfile}
-                                className='rounded-full shadow-xl'
-                                initial={{ scale: 0.7 }}
-                                animate={{ scale: 1 }}
-                                exit={{ scale: 0.7 }}
-                                transition={flipTransition} 
-                            />
-                        </AnimatePresence>
-                        <button
-                        onClick={() => {
-                            if (userIdx < users.length -1)
-                                setUserIdx(userIdx + 1);
-                            else
-                                setUserIdx(0); 
-                        }}
-                        className='mx-5 hover:text-white'><BiSolidRightArrow/></button>
-                    </div>
-                    <strong className='text-white'>{users[userIdx].pseudo}</strong>
+                                />
+                            )
+                        } else if (index % 3 === 2) {
+                            return (
+                                <ProfilCard
+                                key={user.id}
+                                dataImage={user.urlPhotoProfile}
+                                header={<h1 className='mb-16'>{user.pseudo}</h1>}
+                                content={<p></p>}
+                                starter={100}
+                                className='flex justify-center items-center h-3/6'
+                                onClick={() => handleCreateFriendship(user)}
+
+                                />
+                            )
+                        } else {
+                            return (
+                                <ProfilCard
+                                key={user.id}
+                                dataImage={user.urlPhotoProfile}
+                                header={<h1 className='mb-16'>{user.pseudo}</h1>}
+                                content={<p></p>}
+                                starter={100}
+                                className='flex justify-center items-center h-3/6'
+                                onClick={() => handleCreateFriendship(user)}
+
+                                />
+                            )
+                        }
+                    })}
+                    </motion.div>
                 </div>
-                <button
-                    onClick={() => handleCreateFriendship()}
-                    className='h-10 w-[40%] bg-white/20 border border-1 my-5 flex items-center 
-                    justify-center break-all text-ellipsis overflow-hidden text-white hover:bg-white/10'
-                >
-                    Add friend
-                </button>
-            </div>
-        }
+            }
         </>
     )
 }

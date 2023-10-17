@@ -8,6 +8,7 @@ import { ChatGateway } from 'src/chat/chat.gateway';
 import { GatewaySessionManager } from 'src/chat/chat.session';
 import { FriendsService } from 'src/friends/friends.service';
 import { MessageService } from 'src/message/message.service';
+import { SocketGateway } from 'src/socket/socket.gateway';
 
-@Module({imports: [], providers: [MessageService, FriendsService, GatewaySessionManager, ChatGateway, CrudService, ChannelService, UsersService, EventEmitter2], controllers: [ChannelsController]})
+@Module({imports: [], providers: [MessageService, FriendsService, GatewaySessionManager, ChatGateway, SocketGateway, CrudService, ChannelService, UsersService, EventEmitter2], controllers: [ChannelsController]})
 export class ChannelModule {}

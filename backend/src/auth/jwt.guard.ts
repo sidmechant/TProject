@@ -23,15 +23,15 @@ export class JwtAuthGuard implements CanActivate {
     const request = context.switchToHttp().getRequest();
     const res = context.switchToHttp().getResponse();
 
-    this.logger.debug(` JWT GUARD ACTIVATED `);
+    //this.logger.debug(` JWT GUARD ACTIVATED `);
 
     const isPublic = Reflect.getMetadata('isPublic', context.getHandler());
     if (isPublic) {
-      console.log("ROUTE PUBLIQUE");
+      //console.log("ROUTE PUBLIQUE");
       return true; // Autoriser l'accès sans vérification JWT
     }
 
-    this.logger.debug(` JWT GENERADATA ${isPublic} `);
+    //this.logger.debug(` JWT GENERADATA ${isPublic} `);
     try {
       const cookie = request.cookies['jwt_token'];
       if (!cookie) {
@@ -39,7 +39,7 @@ export class JwtAuthGuard implements CanActivate {
         throw new UnauthorizedException('No token provided');
       }
 
-      this.logger.debug(`JWT COOKIE ${cookie}`);
+      //this.logger.debug(`JWT COOKIE ${cookie}`);
       const decoded = verify(cookie, process.env.JWT_SECRET) as JwtPayload;
       if (!decoded || !decoded.sub || !decoded.sessionId) {
         res.clearCookie('jwt_token');
@@ -62,7 +62,7 @@ export class JwtAuthGuard implements CanActivate {
 
       request.user = user;
       request.userId = decoded.sub;
-      this.logger.debug(`JWT FINISH user : ${user.id} ${request.id}`);
+      //this.logger.debug(`JWT FINISH user : ${user.id} ${request.id}`);
       return true;
     } catch (err) {
        console.log("PROBLEM GUARD: ", err);
