@@ -1,4 +1,10 @@
 import '../Chatbox.scss';
+/*import {
+	HoverCard,
+	HoverCardContent,
+	HoverCardTrigger,
+} from "@components/ui/hover-card"*/
+  
 import { motion } from "framer-motion"
 import { useEffect, useRef, useState } from 'react';
 import { AiOutlineSend } from 'react-icons/ai';
@@ -448,7 +454,7 @@ export default function MainChat({selectedChat, setSelectedChat}: ChatProps) {
 						<div className={message.userId == user.userId ? self : other} key={index}>
 							<div className='my-5'>
 							<div className='h-12 w-12 min-h-12 min-w-12 rounded-full'>
-								<img className='object-fill rounded-full' src={player.urlPhotoProfile} alt="Profile" />
+								<img onClick={() => console.log(`pmessage: ${player.pseudo}`)} className='object-fill rounded-full' src={player.urlPhotoProfile} alt="Profile" />
 							</div>
 							</div>
 							<div className='max-w-sm my-5 mx-5'>

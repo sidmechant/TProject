@@ -1,4 +1,5 @@
 import { defineConfig } from 'vite'
+import path from "path"
 import react from '@vitejs/plugin-react'
 // import Legacy from '@vitejs/plugin-legacy'; // Importez le plugin
 import React, { useEffect, useState } from "react";
@@ -12,6 +13,11 @@ import React, { useEffect, useState } from "react";
 
 export default defineConfig({
   plugins: [react()],
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
+    },
+  },
   server: {
    watch: {
     usePolling: true,
