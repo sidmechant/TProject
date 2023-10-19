@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, UseGuards, Param, Req, HttpException, Http
 import { Socket } from 'socket.io';
 import { AuthUser } from 'src/jwt/auth-user.decorator';
 import { ChannelMembership, Message, Player, User } from '@prisma/client';
-import { CreateChannelDto, CreateMessageDto, GetChannelDto, JoinChannelDto, JoinChannelProtectedDto, ListMessageDTO, SendMessageDTO } from '../dto/channel.dto';
+import { ChannelIdDTO, CreateChannelDto, CreateMessageDto, GetChannelDto, JoinChannelDto, JoinChannelProtectedDto, SendMessageDTO, channelUserDTO } from '../dto/channel.dto';
 import { SkipThrottle } from '@nestjs/throttler';
 import { JwtAuthGuard } from 'src/auth/jwt.guard';
 import { EventEmitter2 } from '@nestjs/event-emitter';
@@ -203,7 +203,7 @@ export class ChannelsController {
   }
 
   @Get('list-message-channel/:channelId')
-  async listMessageByChannelId(@Param() payload: ListMessageDTO): Promise<{ statusCode: number, message: string, isSuccess: boolean, messages: Message[] }> {
+  async listMessageByChannelId(@Param() payload: ChannelIdDTO): Promise<{ statusCode: number, message: string, isSuccess: boolean, messages: Message[] }> {
     try {
 
       console.log("listmsg chanId: ", payload.channelId);
@@ -242,6 +242,14 @@ export class ChannelsController {
     const userId = await this.channelService.findUserIdByPseudo(pseudo);
     if (!userId) throw new NotFoundException(`User with pseudo "${pseudo}" not found.`);
     return userId;
+  }
+
+  @Post('kick-from-channel/:channelId/:userId')
+  async kickFromChannel(@Param('channelId') channelId: string, @Param('userId') userId: string): Promise<boolean> {
+
+    console.log(channelId);
+    console.log(userId);
+    return true;
   }
 
  /* @Post(':channelId/admin/:pseudo')

@@ -1,11 +1,17 @@
-interface User {
+export interface User {
     id: number,
     pseudo: string,
     urlPhotoProfile: string,
 }
 
-interface CreateChannelDto {
+export interface CreateChannelDto {
     name: string,
     type: string,
     password?: string,
+}
+
+export interface IEvent {
+    target: string,
+    type: string,
+    content: string,
 }

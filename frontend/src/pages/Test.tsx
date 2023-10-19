@@ -70,7 +70,7 @@ export default function Test() {
 					{/* </e.mesh> */}
 						{/* <RetroBall body={ref} position={{x:0,y:0,z:0}} velocity={{x:1,y:0,z:0}} /> */}
 					<e.group theatreKey="skull" rotation={[-Math.PI / 2, 0, 0]} position={[4, 0, 0]}>
-					<AnimationUltiMedieval />
+					<AnimationUltiMedieval location={-1} isActive={[false]}/>
 					</e.group>
 					{/* <group rotation={[Math.PI/2,0,0]}> */}
 					{/* <NinjaBall body={ref2} position={{ x: 0, y: 0, z: 0 }} velocity={{ x: 1, y: 1, z: 1 }} /> */}

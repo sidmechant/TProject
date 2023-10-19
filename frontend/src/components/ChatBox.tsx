@@ -146,6 +146,7 @@ export const ChatBox = () => {
 		};
 	}, [isChatBoxOpen]);
 
+  return <></>
 	return (
 		<Container ref={chatBoxRef}> {/* Ajout de la référence ici */}
 			{isChatBoxOpen ? (

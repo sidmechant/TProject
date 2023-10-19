@@ -24,8 +24,6 @@ export default function NavbarFriends({selectedFriend, setSelectedFriend, classN
     
         getFriends().then(friends => {
           setFriends(friends);
-
-          console.log("NAV FRIENDS: ", friends);
         });
     
       }, []);

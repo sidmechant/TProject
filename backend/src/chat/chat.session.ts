@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { verify } from 'jsonwebtoken';
 import {FriendsService} from '../friends/friends.service'
+import { SocketGateway } from 'src/socket/socket.gateway';
+import e from 'express';
 
 export interface IGatewaySessionManager {
   getUserSocket(id: number): any; // Utilisez le type approprié pour le socket
@@ -10,9 +12,14 @@ export interface IGatewaySessionManager {
 }
 
 @Injectable()
-export class GatewaySessionManager implements IGatewaySessionManager{
-  constructor(private FriendService: FriendsService) {}
-  private readonly sessions: Map<number, any> = new Map(); // Utilisez le type approprié pour le socket
+export class GatewaySessionManager {
+
+  constructor(
+    private FriendService: FriendsService,
+    private readonly io: SocketGateway,
+    ) {}
+  private readonly sessions: Map<number, any> = new Map();
+
 
   
   getUserSocket(id: number) {
@@ -20,30 +27,48 @@ export class GatewaySessionManager implements IGatewaySessionManager{
   }
 
   setUserSocket(token: string, id: any) {
-    // Vérifiez le token JWT ici pour extraire l'ID de l'utilisateur
     try {
-      const decoded = verify(token, process.env.JWT_SECRET) // Remplacez par votre secret JWT
-      const userId = decoded.sub;
-      const numberUserId = Number(userId)
-      // Stockez le socket dans la session en utilisant l'ID de l'utilisateur comme clé
-      this.sessions.set(numberUserId, id);
-      this.FriendService.setOnlineStatus(numberUserId, true);
-      console.log("SESSSION CHAT MANAGER Connect", numberUserId);
-    } catch (error) {
-      // Gérez les erreurs de vérification du token JWT ici
-      //throw new Error('Invalid JWT token');
-    }
-  }
 
-  removeUserSocket(token: string) {
-    try {
       const decoded = verify(token, process.env.JWT_SECRET)
       const userId = decoded.sub;
       const numberUserId = Number(userId);
-      this.sessions.delete(numberUserId);
-      this.FriendService.setOnlineStatus(numberUserId, false);
-      console.log("SESSSION CHAT MANAGER Disconnect", numberUserId);
+      if (!this.sessions.has(numberUserId)) {
+        this.sessions.set(numberUserId, id);
+        this.FriendService.setOnlineStatus(numberUserId, true);
+        this.io.handleUpdateConnection(this.sessions);
+      }
+      console.log("Connected User list: ", this.sessions);
     } catch (error) {
+      console.log("Error setUser sock: ", error);
+    }
+  }
+
+  removeUserSocket(token: string, id: any) {
+    try {
+      if (token && token !== 'null') {
+        const decoded = verify(token, process.env.JWT_SECRET)
+        const userId = decoded.sub;
+        const numberUserId = Number(userId);
+        this.sessions.delete(numberUserId);
+        this.FriendService.setOnlineStatus(numberUserId, false);
+        this.io.handleUpdateConnection(this.sessions);
+      } else {
+
+        let userId = null;
+        for (const [key, val] of this.sessions.entries()) {
+          if (val === id) {
+            userId = key;
+            break ;
+          }
+        }
+        if (userId) {
+          this.sessions.delete(userId);
+          this.io.handleUpdateConnection(this.sessions);
+        }
+        console.log("After disconnect User list: ", this.sessions);
+      }
+    } catch (error) {
+      console.log("Error removeUserSocket: ", error);
       //throw new Error('Problem remove User Socket');
     }
   }

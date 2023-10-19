@@ -173,8 +173,8 @@ async getFriendlist(@Req() req) {
     const pendingFriends = await this.friendsService.getPendingFriends(userId);
     const acceptedFriends = await this.friendsService.getAcceptedFriends(userId);
 
-    console.log("pend: ", pendingFriends);
-    console.log("acc : ", acceptedFriends);
+    //console.log("pend: ", pendingFriends);
+    //console.log("acc : ", acceptedFriends);
     const allFriends = [
       ...pendingFriends.map(friend => ({ ...friend, status: 'requested' })),
       ...acceptedFriends.map(friend => ({ ...friend, status: 'accepted' }))

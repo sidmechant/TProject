@@ -1,6 +1,25 @@
+import { error } from "console";
 
+const getCookie = (name: string) => {
+    const cookies = document.cookie.split('; ');
+    for (const cookie of cookies) {
+      const [cookieName, cookieValue] = cookie.split('=');
+      if (cookieName === name) {
+        return decodeURIComponent(cookieValue);
+      }
+    }
+    return null;
+  };
 
 export const getPlayerDataApi = async () => {
+
+
+	if (!getCookie('jwt_token')) {
+		const custom_error = new Error() as any;
+		custom_error.statusCode = 403;
+		custom_error.message = JSON.stringify({"message":"Forbidden resource", "error":"Forbidden","statusCode":403});
+		throw custom_error;
+	}
 	const response = await fetch('http://localhost:3000/players', {
 		method: 'GET',
 		headers: { 'Accept': 'application/json' },
@@ -13,6 +32,8 @@ export const getPlayerDataApi = async () => {
 		error.statusCode = response.status;
 		error.message = await response.text();
 
+		console.log("ERR MSG: ", error.message);
+
 		// Essayons de parser le message d'erreur
 		try {
 			const parsedMessage = JSON.parse(error.message);
@@ -24,7 +45,7 @@ export const getPlayerDataApi = async () => {
 			// Si le parsing échoue, on ne fait rien et on conserve le comportement par défaut
 		}
 
-		console.log("Error", response);
+		console.log("Error DAMN", response);
 		throw error;
 	}
 

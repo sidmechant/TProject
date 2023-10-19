@@ -16,20 +16,6 @@ import { Connection } from './components/Connection';
 import { ChakraProvider } from '@chakra-ui/react'
 import NewChatBox from './components/modalChat/Chatbox';
 
-
-
-
-
-// function useSocketAndMessages() {
-//   const [socket, setSocket] = useState<Socket | undefined>();
-//   const [messages, setMessages] = useState<string[]>([]);
-
-//   socket?.emit("message", value);
-
-//   return <div className='Chat'></div>
-// }
-
-
 function App() {
 	const location = useLocation();
 	const [isChatBoxOpen, setIsChatBoxOpen] = useState<boolean>(false);

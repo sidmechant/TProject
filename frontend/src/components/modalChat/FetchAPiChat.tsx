@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { BsExclamationSquare } from 'react-icons/bs';
+import socket from '../../socket'
 
 axios.defaults.baseURL = 'http://localhost:3000'; // Base URL
 axios.defaults.withCredentials = true; // Permet d'envoyer les credentials (comme les cookies) lors de chaque requête
@@ -51,6 +51,21 @@ interface sendMessageProps {
   message: string;
 }
 
+export const sendGameInvitation = (target: string) => {
+  const user = JSON.parse(localStorage.getItem('player') as string);
+  socket.emit('sendEvent', {target, type: 'game', content: `${user.pseudo} sent you a game invitation.`});
+}
+
+export const sendEvent = (target: string, type: 'friend' | 'message' | 'game', content: string) => {
+
+  socket.emit('sendEvent', {target, type, content});
+}
+
+export const sendEventRoom = (target: string, type: string, content: string) => {
+  
+  socket.emit('sendEventRoom', {target, type, content});
+}
+
 export const getUser = async () => {
 
   const response =  await axios.get('/users/me');
@@ -76,6 +91,16 @@ export const listMessages = async (channelId: string) => {
     const response = await axios.get(`/channel/list-message-channel/${channelId}`);
     return response.data.messages;
   } catch (error) {
+    handleAxiosError(error);
+  }
+}
+
+export const kick = async (channelId: string, userId: number) => {
+  try {
+    const response = await axios.post(`/channel/kick-from-channel/${channelId}/${userId}`);
+    return response;
+  }
+  catch (error) {
     handleAxiosError(error);
   }
 }

@@ -1,12 +1,12 @@
 import { ReactElement, ReactNode, useEffect, useState } from 'react';
-import HomeLoading from '../pages/loadingPages/HomeLoading';
-import { AuthInProgress, ButtonAutentification } from '../pages/loadingPages/Authentification';
-import { getPlayerDataApi } from './Profil/FetchApi';
-import { client } from '../data/Client';
+import HomeLoading from '../pages/loadingPages/HomeLoading.tsx';
+import { AuthInProgress, ButtonAutentification } from '../pages/loadingPages/Authentification.tsx';
+import { getPlayerDataApi } from './Profil/FetchApi.tsx';
+import { client } from '../data/Client.tsx';
 import socket from '../socket.ts';
-import UpdateInfo from './Profil/ChangeInfo';
-import { UserInfosContext, useUserInfos } from './ContextBoard';
-import TwoFA from './Profil/TwoFA';
+import UpdateInfo from './Profil/ChangeInfo.tsx';
+import { UserInfosContext, useUserInfos } from './ContextBoard.tsx';
+import TwoFA from './Profil/TwoFA.tsx';
 
 type UserInfos = {
 	pseudo: string;
@@ -55,7 +55,6 @@ export function SetConnection({ children }: { children: ReactNode }): ReactEleme
 			let localToken = getToken('token');
 			if (localToken) {
 
-				console.log("checkForToken exist");
 				setIsLoading(false);
 				clearInterval(interval);
 				setToken(localToken);
@@ -78,7 +77,6 @@ export function SetConnection({ children }: { children: ReactNode }): ReactEleme
 
 	const startAuthProcess = () => {
 
-		console.log("START AUTH PROCESS");
 		setIsLoading(true);
 		const newWindow = window.open('http://localhost:3000/42/login', '_blank');
 		newWindow && checkForToken(newWindow);
@@ -88,9 +86,12 @@ export function SetConnection({ children }: { children: ReactNode }): ReactEleme
 	useEffect(() => {
 		if (userInfo) {
 			if (userInfo.pseudo) {
-				console.log("ludi regarde t connecter");
 				client.token = jwtToken;
-				socket.io.opts.query = { token: jwtToken };
+				//const cookieString = `jwt_token=${jwtToken as string}; path=/; samesite=strict`;
+				//document.cookie = cookieString;
+				//console.log("Cookie string: ", cookieString);
+
+				setJwtToken(jwtToken);
 				client.socket = socket;
 				setIsUser(true);
 			}
@@ -100,9 +101,8 @@ export function SetConnection({ children }: { children: ReactNode }): ReactEleme
 	}, [userInfo]);
 
 	useEffect(() => {
-		if (jwtToken) {
+		if (jwtToken)
 			setIsConnected(true);
-		}
 		else
 			setIsConnected(false);
 	}, [jwtToken]);
@@ -110,13 +110,10 @@ export function SetConnection({ children }: { children: ReactNode }): ReactEleme
 	useEffect(() => {
 		if (needToReload) {
 			setNeedToReload(false);
-			console.log('needToReload');
 			const fetchData = async () => {
 				try {
 
-					console.log("Connection.ts DATA ?");
 					const data = await getPlayerDataApi();
-					console.log("CONNECTION.TS data: ", data);
 					setIsConnected(true);
 					if (data.role === 'USER') {
 						setIsUser(true);
@@ -125,10 +122,8 @@ export function SetConnection({ children }: { children: ReactNode }): ReactEleme
 						setIsUser(false);
 					setUserInfo({ pseudo: data.player.pseudo, urlPhoto: data.player.urlPhotoProfile });
 				} catch (error: any) {
-					console.log("ERROR CODE: ", error.statusCode);
 					if (error && error.statusCode === 428) {
 						setNeedToAuthentified(true);
-						console.error("coucou::", error); // ?
 					}
 					if (error && error.statusCode === 401) {
 						setIsUser(false);
@@ -152,17 +147,14 @@ export function SetConnection({ children }: { children: ReactNode }): ReactEleme
 
 	useEffect(() => {
 		if (apiData) {
-			console.log("ludi regarde t connecterrrrrrrrrrr");
 			setNeedToReload(true);
 			setJwtToken(getToken('jwt_token'));
 		}
 	}, [apiData]);
 
 	useEffect(() => {
-		console.log("token??");
 
 		if (token) {
-			console.log("token");
 			const fetchData = async () => {
 				try {
 					const response = await fetch('http://localhost:3000/42/user', {
@@ -170,7 +162,6 @@ export function SetConnection({ children }: { children: ReactNode }): ReactEleme
 						credentials: 'include'
 					});
 					const data = await response.json();
-					console.log("42/user data: ", data);
 					setApiData(data);
 				} catch (error) {
 					console.error("Erreur lors de l'obtention du JWT:", error);

@@ -2,7 +2,7 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/": ["./@/*"],
     },
     "target": "ES2020",
     "useDefineForClassFields": true,
@@ -24,6 +24,6 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src", "public/assets"],
+  "include": ["src", "public/assets", "@"],
   "references": [{ "path": "./tsconfig.node.json" }],
 }

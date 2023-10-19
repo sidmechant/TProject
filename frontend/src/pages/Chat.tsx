@@ -205,7 +205,7 @@ function Navbar() {
     <div className='h-[7%] bg-slate-900 w-full flex justify-between items-center text-white'>
         <button className='ml-5'><AiOutlineMenu /></button>
         <h1>Transcendance</h1>
-        <button className='mr-5 border border-2 rounded-full'><BsFillPersonFill/></button>
+        <button className='mr-5 border-2 rounded-full'><BsFillPersonFill/></button>
     </div>
   )
 };
@@ -221,71 +221,3 @@ function Chat() {
 }
  
 export default Chat;
-
-
-
-/*import React, { useState, useEffect } from 'react';
-import CreateChannel from '../components/Chat/CreateChannel';
-import io from 'socket.io-client';
-import { Socket } from 'socket.io-client';
-import { DefaultEventsMap } from 'socket.io/dist/typed-events';
-
-const Chat = () => {
-    const [chatSocket, setChatSocket] = useState<Socket<DefaultEventsMap, DefaultEventsMap> | null>(null);
-    const [messages, setMessages] = useState<string[]>([]);
-    const [message, setMessage] = useState('');
-
-    useEffect(() => {
-        const token = localStorage.getItem('jwt_token');
-        if (token) {
-            const chatSocket = io('http://localhost:3000/chat', {
-                query: {
-                    token: token,
-                },
-            });
-            console.log("TOKEN FRONT ", token);
-            console.log("HHEEEY FRONT");
-            // Écoutez les nouveaux messages
-
-
-            chatSocket.on('new-message', (message: string) => {
-                setMessages(prev => [...prev, message]);
-            });
-            
-
-            setChatSocket(chatSocket);
-
-            return () => {
-                chatSocket.disconnect();
-                chatSocket.off('new-message');  // Supprimez l'écouteur d'événements lors du démontage
-            }
-        }
-    }, []);
-
-    const sendMessage = () => {
-        if (chatSocket && message.trim() !== '') {
-            chatSocket.emit('message', message);
-
-            setMessage('');
-        }
-    };
-
-    return (
-        <>
-            <div>Chat</div>
-            <div>
-                {messages.map((msg, index) => (
-                    <div key={index}>{msg}</div>
-                ))}
-            </div>
-            <input value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Type a message..." />
-
-            <button onClick={sendMessage}>Send</button>
-            <br />
-            <CreateChannel />
-        </>
-    );
-};
-
-export default Chat;
-*/

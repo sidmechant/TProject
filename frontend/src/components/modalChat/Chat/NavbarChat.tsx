@@ -5,6 +5,7 @@ import { BiSolidCrown } from 'react-icons/bi';
 import { IconType } from 'react-icons';
 import { FaUsers, FaUser, FaUserTie, FaUserAltSlash, FaUserCog, FaUserMinus, FaUserPlus } from 'react-icons/fa';
 import socket from '../../../socket';
+import { Tooltip } from '@chakra-ui/react'
 
 interface ConversationProps {
 
@@ -35,7 +36,7 @@ function OptionConversation({onClick, message}: ConversationProps) {
 	return (
 		<button
 		onClick={onClick}
-		className='hover:bg-black/10 h-10 min-h-[3rem] w-[96%] mx-1 bg-black/30 border border-1 mt-4 flex items-center justify-center text-white'>
+		className='hover:bg-black/10 h-10 min-h-[3rem] w-[90%] bg-black/30 border border-1 mt-4 flex items-center justify-center text-white'>
 				{message}
 		</button>
 	)
@@ -49,9 +50,11 @@ function ButtonConversation({onClick, message, id, icon}: ConversationProps) {
 			id={id}
 			key={id}
 			onClick={onClick}
-			className='hover:bg-white/10 h-10 min-h-[4rem] w-[96%] mx-1 bg-white/20 border border-1 mt-4 flex items-center justify-start text-white'>
+			className='hover:bg-white/10 h-10 min-h-[4rem] w-[90%] bg-white/20 border border-1 mt-4 flex items-center justify-start text-white'>
 				<div className='mx-3'>{icon}</div>
-				<div>{message}</div>
+				<Tooltip label={message} aria-label='A Tooltip'>
+					<p className='truncate'>{message}</p>
+				</Tooltip>
 			</button>
 		)
 	}
@@ -60,9 +63,11 @@ function ButtonConversation({onClick, message, id, icon}: ConversationProps) {
 		id={id}
 		key={id}
 		onClick={onClick}
-		className='hover:bg-white/10 h-10 min-h-[4rem] w-[96%] mx-1 bg-white/20 border border-1 mt-4 flex items-center justify-start text-white'>
+		className='hover:bg-white/10 h-10 min-h-[4rem] w-[90%] bg-white/20 border border-1 mt-4 flex items-center justify-start text-white'>
 			<div className='mx-5'>{icon}</div>
-			<div>{message}</div>
+			<Tooltip label={message} aria-label='A Tooltip'>
+				<p className='truncate'>{message}</p>
+			</Tooltip>
 		</button>
 	)
 }

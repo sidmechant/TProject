@@ -6,12 +6,13 @@ type CardProps = {
   header: React.ReactNode;
   content: React.ReactNode;
   className?: string;
+  cardClass?: string;
   info?: string;
   starter: number;
   onClick?: () => void;
 };
 
-const ProfilCard: React.FC<CardProps> = ({ dataImage, header, content, className, info, starter, onClick }) => {
+const ProfilCard: React.FC<CardProps> = ({ dataImage, header, content, className, cardClass, info, starter, onClick }) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
   const [mouse, setMouse] = useState({ x: starter, y: 0 });
@@ -76,10 +77,9 @@ const ProfilCard: React.FC<CardProps> = ({ dataImage, header, content, className
       ref={cardRef}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
-      onClick={onClick}
       className={`card-wrap ${className}`}
     >
-      <div className="card" style={cardStyle}>
+      <div className={`card ${cardClass}`} style={cardStyle}>
         <div className="card-bg" style={cardBgStyle}></div>
         <div className={`card-info ${info}`}>
           {header}

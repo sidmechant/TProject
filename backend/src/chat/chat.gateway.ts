@@ -19,7 +19,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 @WebSocketGateway({
   cors: {
     origin: '*',
-  }, namespace: "chat"
+  }
 })
 export class ChatGateway
   implements OnGatewayConnection, OnGatewayDisconnect {
@@ -33,20 +33,29 @@ export class ChatGateway
     private readonly messageService: MessageService
   ) { }
 
-  async handleConnection(client: Socket) {
-    console.log("QUERY = ", client.handshake.query);
+  handleConnection(client: Socket) {
+    //console.log("QUERY = ", client.handshake.query);
     const token = client.handshake.query.jwt_token as string;
-    console.log('Client connected CHAT:', token);
-
     // Utilisez votre sessionManager pour associer le socket à l'utilisateur
-    this.sessionManager.setUserSocket(token, client);
+
+    if (token && token !== 'undefined' && token !== 'null') {
+      this.sessionManager.setUserSocket(token, client.id);
+    }
   }
 
-  async handleDisconnect(client: Socket) {
+  handleDisconnect(client: Socket) {
     // Utilisez votre sessionManager pour supprimer le socket de l'utilisateur lorsqu'il se déconnecte
     const token = client.handshake.query.token as string;
-    console.log('Client disconnected CHAT:', token);
-    this.sessionManager.removeUserSocket(token);
+    this.sessionManager.removeUserSocket(token, client.id);
+  }
+
+  @SubscribeMessage('manualConnect')
+  handleManualConnect(@ConnectedSocket() client: Socket) {
+    const token = client.handshake.query.jwt_token as string;
+
+    if (token && token !== 'undefined' && token !== 'null') {
+      this.sessionManager.setUserSocket(token, client.id);
+    }
   }
 
   @SubscribeMessage('joinChannel')

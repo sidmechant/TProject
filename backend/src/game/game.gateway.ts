@@ -35,7 +35,8 @@ const match: MatchMaking = new MatchMaking;
 // })
 
 
-export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
+//export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
+  export class GameGateway {
   constructor(private readonly crudService: CrudService) {}
   @WebSocketServer() server: Server;
 
@@ -124,10 +125,11 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
-  handleConnection(client: Socket) {
-    /*const token = client.handshake.query.token as string; // TMP
-    console.log('Client connected:', token);*/
-  }
+  /*handleConnection(client: Socket) {
+    const token = client.handshake.query.token as string; // TMP
+    console.log('Client connected:', token);
+  }*/
+
   // async handleConnection(client: Socket) {
   //   try {
   //     const token = client.handshake.query.token as string; 
@@ -162,11 +164,11 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   // }
   
 
-  handleDisconnect(client: Socket) {
+  /*handleDisconnect(client: Socket) {
     match.remove(client);
-    /*const token = client.handshake.query.token as string; // TMP
-    console.log('Client disconnected:', token);*/
-  }
+    const token = client.handshake.query.token as string; // TMP
+    console.log('Client disconnected:', token);
+  }*/
 
   @SubscribeMessage('ball')
   handleEventBall(@ConnectedSocket() client: Socket): void {

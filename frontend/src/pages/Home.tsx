@@ -1,4 +1,4 @@
-import { SetStateAction, useEffect, useState } from 'react';
+import React, { SetStateAction, useEffect, useState } from 'react';
 import transition from '../components/Transition';
 import styled from 'styled-components';
 import HomeScene from '../components/Home/Menu3D/HomeScene';
@@ -7,6 +7,10 @@ import MenuHome from '../components/Home/Menu2D/MenuHome';
 import { LoadingContext, MeshProvider, RotationProvider } from '../components/ContextBoard';
 import  { ChatBox }  from '../components/ChatBox';
 import * as API from '../components/modalChat/FetchAPiChat';
+import { useToast, Box } from '@chakra-ui/react';
+import socket, { setJwtToken } from '../socket';
+import { IEvent } from '../components/modalChat/interface';
+import Logout from '../components/logout';
 
 const Container = styled.div`
 	display: grid;
@@ -66,6 +70,29 @@ export default function Home({setReady}:{setReady:React.Dispatch<SetStateAction<
 
   const [isLoading, setIsLoading] = useState(true);
   const [elapsedTime, setElapsedTime] = useState(0);
+  const toast = useToast();
+
+  useEffect(() => {
+    const handleEvent = (payload: IEvent) => {
+
+      console.log("RECEIVED EVENT: ", payload);
+      toast({
+        position: 'bottom-right',
+        duration: 3000,
+        render: () => (
+          <Box className='text-white shadow-2xl bg-black/70 border border-white rounded-xl' p={7}>
+              {payload.content}
+          </Box>
+      )
+      });
+    };
+
+    socket.on('newEvent', handleEvent);
+
+    return () => {
+      socket.off('newEvent', handleEvent);
+    };
+  }, []);
 
   useEffect(() => {
     const startTime = Date.now();
@@ -93,9 +120,14 @@ export default function Home({setReady}:{setReady:React.Dispatch<SetStateAction<
       return me;
     }
     
-    if (!isLoading && API.getCookie('jwt_token')) {
+    const jwt_token = API.getCookie('jwt_token');
+    if (!isLoading && jwt_token) {
+
       getMyUser().then((response: any) => {
         localStorage.setItem('player', JSON.stringify(response.player));
+        localStorage.setItem('jwt_token', jwt_token);
+        setJwtToken(jwt_token);
+        //socket.emit('manualConnect');
         setReady(true);
       });
     }
@@ -111,7 +143,10 @@ export default function Home({setReady}:{setReady:React.Dispatch<SetStateAction<
   }
   
   return (
-    <ChatBox />
+    <>
+      <ChatBox />
+      <Logout />
+    </>
   )
   
   return (

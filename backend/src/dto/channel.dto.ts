@@ -46,7 +46,7 @@ export class SendMessageDTO {
   message: string;
 }
 
-export class ListMessageDTO {
+export class ChannelIdDTO {
   @IsString()
   channelId: string;
 }
@@ -66,6 +66,14 @@ export class GetChannelDto {
 
     @IsString()
     ownerId?: string;
+}
+
+export class channelUserDTO {
+  @IsString()
+  channelId: string;
+
+  @IsString()
+  userId: string;
 }
 
 export class CreateMessageDto {

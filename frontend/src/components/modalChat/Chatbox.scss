@@ -44,11 +44,26 @@
 	);
   }
 
+.newBox {
+	display: grid;
+	grid-template-rows: 1fr 15%;
+	grid-template-columns: 90% 0.01% 1fr;
+}
+
 .newChatBox {
 
+	grid-area: 1 / 1 / span 1 / span 1;
 	display: grid;
 	grid-template-rows: 8% 9% 1fr 15%;
-	grid-template-columns: 30% 1fr;
+	grid-template-columns: 27% 63% 0% 1% 1fr;
+}
+
+.newUsers {
+	grid-area: 3 / 5 / span 1 / span 1;
+}
+
+.newAddUser {
+	grid-area: 4 / 5 / span 1 / span 1;
 }
 
 .newMenu {

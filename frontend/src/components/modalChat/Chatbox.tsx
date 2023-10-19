@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion } from "framer-motion"
-import { BsChatDots, BsFillChatLeftTextFill } from 'react-icons/bs';
-import { AiOutlineClose, AiOutlineSend, AiOutlineMenu } from 'react-icons/ai';
+import { BsFillChatLeftTextFill, BsPlusLg } from 'react-icons/bs';
+import { AiOutlineClose, AiOutlineSend, AiOutlineMenu, AiFillPlusCircle } from 'react-icons/ai';
 import { PiNotificationFill } from 'react-icons/pi';
 import { FaUserFriends } from 'react-icons/fa';
 import { MdChatBubble, MdMarkChatUnread} from 'react-icons/md';
-import { BsToggleOn, BsToggleOff } from 'react-icons/bs';
+import { BsToggleOn, BsToggleOff, BsMicMuteFill, BsPlusCircle } from 'react-icons/bs';
+import { FaUsers, FaUser, FaUserTie, FaUserAltSlash, FaUserCog, FaUserMinus, FaUserPlus } from 'react-icons/fa';
 import './Chatbox.scss';
 import { Slider, SliderFilledTrack, SliderThumb, SliderTrack, Input } from "@chakra-ui/react";
 import NavbarChat from './Chat/NavbarChat.tsx';
@@ -16,6 +17,11 @@ import * as API from './FetchAPiChat.tsx';
 import MainChat from './Chat/MainChat.tsx';
 import MainFriends from './Friends/MainFriends.tsx';
 import MainNotif from './Notif/MainNotif.tsx';
+import {
+	HoverCard,
+	HoverCardContent,
+	HoverCardTrigger,
+} from "@/components/ui/hover-card"
 
 interface User {
     id: number;
@@ -24,10 +30,16 @@ interface User {
     userId: number;
 }
 
-function ChatMain(myUser: any) {
-	const [ menu, setMenu ] = useState<number>(1);
+interface ChatProps {
+	myUser: any;
+	selectedChat: any;
+	setSelectedChat: React.Dispatch<any>;
+	menu: number;
+	setMenu: React.Dispatch<React.SetStateAction<number>>;
+}
+
+function ChatMain({myUser, selectedChat, setSelectedChat, menu, setMenu}: ChatProps) {
 	const [ selectedFriend, setSelectedFriend] = useState<any>(null);
-	const [ selectedChat, setSelectedChat] = useState<any>(-1);
 	const [ openNav, setOpenNav ] = useState<number>(1);
 
 	const [ navStyles, setNavStyles ] = useState({
@@ -126,9 +138,12 @@ export default function ChatBox({ready}: {ready: boolean}) {
 	const [ isChatBoxOpen, setChatBoxOpen ] = useState<boolean>(false);
 	const [ notification, setNotification ] = useState<boolean>(true);
 	const [ chatRatio , setChatRatio ] = useState<number>(15);
+	const [ selectedChat, setSelectedChat] = useState<any>(-1);
+	const [ menu, setMenu ] = useState<number>(1);
     const [ myUser, setMyUser ] = useState<any>(null);
+	const dragRef = useRef(null);
 
-	const chatSize = (16 + chatRatio) < 31 ? 31 : 16 + chatRatio;
+	const chatSize = (17 + chatRatio) < 32 ? 32 : 16 + chatRatio;
 
 	const chatBoxOpener = `${isChatBoxOpen ? 'hidden' : ''} ${notification ? 'text-indigo-700' : 'text-black'} hover:border-white hover:text-white bg-white/70 hover:bg-white/0 
 	flex justify-center items-center shadow-xl fixed left-5 bottom-5 z-5 border border-2 border-slate-500 w-16 h-10`;
@@ -144,15 +159,6 @@ export default function ChatBox({ready}: {ready: boolean}) {
 
    useEffect(() => {
     
-        /*const GetUserData = async () => {
-
-			const fetchedUser = await oldAPI.getPlayerDataApi();
-			return fetchedUser.player;
-        };
-		if (API.getCookie('jwt_token'))
-			setMyUser(GetUserData());
-        //GetUserData();*/
-		console.log("IS LOADING: ", ready);
 		const player = API.getMyself();
 		setMyUser(player);
 
@@ -187,45 +193,50 @@ export default function ChatBox({ready}: {ready: boolean}) {
 				{notification ? <MdMarkChatUnread/> :<MdChatBubble /> }
 			</motion.button>
 			{isChatBoxOpen && (
-					<motion.div
-						drag
-						style={{
-							width: chatSize + "rem",
-							height: chatSize + "rem",
-							position: "fixed",
-							left: "0%",
-							bottom: "0%",
-						}}
-						initial={{ opacity: 0, scale: 0.5 }}
-						animate={{ opacity: 1, scale: 1 }}
-						transition={{ duration: 0.5 }}
-						className="backdrop-blur-sm bg-white/30 shadow-xl newChatBox h-[26rem] w-[26rem]"
-					>
-						<div className="bg-black/70 shadow-md newMenu flex flex-row-reverse items-center justify-between">
-							<motion.button
-							whileHover={{rotate: 90}}
-							className="mr-1 text-white hover:text-red-500"
-							onClick={() => setChatBoxOpen(false)}>
-								<AiOutlineClose />
-							</motion.button>
-							<div className="mx-10 w-[100%] flex justify-center items-center">
-								<Slider
-									value={chatRatio}
-									min={15}
-									max={65}
-									aria-label="slider-chat"
-									colorScheme="gray"
-									onChange={(val) => setChatRatio(val)}
-								>
-									<SliderTrack>
-										<SliderFilledTrack />
-									</SliderTrack>
-									<SliderThumb />
-								</Slider>
-							</div>
+			<div className='absolute h-full w-full' ref={dragRef}>
+				<motion.div
+					drag
+					dragConstraints={dragRef}
+					whileDrag={{ scale: 1.1, boxShadow: "-63px 42px 28px -7px rgba(0,0,0,0.1)" }}
+					style={{
+						width: chatSize + "rem",
+						height: chatSize + "rem",
+						position: "fixed",
+						left: "0%",
+						bottom: "0%",
+					}}
+					initial={{ opacity: 0, scale: 0.5 }}
+					animate={{ opacity: 1, scale: 1 }}
+					transition={{ duration: 0.5 }}
+					className="backdrop-blur-sm drop-shadow-xl newChatBox h-[26rem] w-[26rem]"
+				>
+					<div className="bg-black/70 drop-shadow-md newMenu flex flex-row-reverse items-center justify-between">
+						<motion.button
+						whileHover={{rotate: 90}}
+						className="mr-1 text-white hover:text-red-500"
+						onClick={() => setChatBoxOpen(false)}>
+							<AiOutlineClose />
+						</motion.button>
+						<div className="mx-10 w-[100%] flex justify-center items-center">
+							<Slider
+								value={chatRatio}
+								min={17}
+								max={65}
+								aria-label="slider-chat"
+								colorScheme="gray"
+								onChange={(val) => setChatRatio(val)}
+							>
+								<SliderTrack>
+									<SliderFilledTrack />
+								</SliderTrack>
+								<SliderThumb />
+							</Slider>
 						</div>
-						<ChatMain myUser={myUser}/>
-					</motion.div>
+					</div>
+					<ChatMain myUser={myUser} selectedChat={selectedChat} setSelectedChat={setSelectedChat}
+						menu={menu} setMenu={setMenu}/>
+				</motion.div>
+			</div>
 			)}
 		</div>
 	);

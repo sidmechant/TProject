@@ -1,14 +1,10 @@
 import '../Chatbox.scss';
-/*import {
-	HoverCard,
-	HoverCardContent,
-	HoverCardTrigger,
-} from "@components/ui/hover-card"*/
-  
 import { motion } from "framer-motion"
 import { useEffect, useRef, useState } from 'react';
 import { AiOutlineSend } from 'react-icons/ai';
-import { BsShieldLock } from 'react-icons/bs';
+import { BsShieldLock, BsPlusLg, BsMicMuteFill } from 'react-icons/bs';
+import { FaUserTie, FaUserAltSlash, FaUserMinus } from 'react-icons/fa';
+import { GrStatusGoodSmall } from 'react-icons/gr';
 import {
 	FormControl,
 	FormLabel,
@@ -32,6 +28,11 @@ import {
 	ModalCloseButton,
 	useDisclosure,
   } from '@chakra-ui/react'
+  import {
+	HoverCard,
+	HoverCardContent,
+	HoverCardTrigger,
+} from "@/components/ui/hover-card"
 import * as API from '../FetchAPiChat';
 import socket from '../../../socket';
 
@@ -343,12 +344,13 @@ export default function MainChat({selectedChat, setSelectedChat}: ChatProps) {
 	const user = API.getMyself();
 	const [ messages, setMessages ] = useState<any>(null);
 	const [ channel, setChannel ] = useState<any>(null);
+	const [ connected, setConnected ] = useState<number[] | null>(null);
 	const chatRef = useRef<HTMLDivElement>(null);
 
 	
-	const self = 'my-5 px-5 bg-slate-700/20 text-white flex min-h-24 w-64 mx-3 border border-1 border-black rounded-xl';
+	const self = 'columns-1 text-lg my-5 px-5 bg-slate-700/20 text-white min-h-24 mx-3 mr-12 border border-1 border-black rounded-xl inline-flex flex-col';
  
-	const other = 'my-5 px-5 bg-indigo-700/40 text-white justify-self-end flex min-h-24 w-4/6 max-w-sm mx-3 border border-1 border-black rounded-xl';
+	const other = 'text-lg my-5 px-5 ml-12 bg-indigo-700/40 text-white min-h-24 inline-flex flex-col mx-3 border border-1 border-black rounded-xl';
 
     const handleValue = (event: any) => setValue(event.target.value);
 	//socket.emit("joinChannel", "30");
@@ -361,12 +363,35 @@ export default function MainChat({selectedChat, setSelectedChat}: ChatProps) {
 			elem.scrollTop = elem.scrollHeight;
 		}
 	}, [messages]);
+
+	useEffect(() => {
+
+		socket.emit('getConnection');
+
+	}, []);
+
+	useEffect(() => {
+
+        const handleConnection = (userIdList: number[]) => {
+
+            console.log("user list: ", userIdList);
+            setConnected(userIdList);
+        }
+
+        socket.on('updateConnection', handleConnection);
+
+        return () => {
+            socket.off('updateConnection', handleConnection);
+        }
+
+    }, []);
+
 	useEffect(() => {
 
 		const retrieveMessages = async () => {
 			if (selectedChat && selectedChat !== -1 && selectedChat !== -2) {
 				const res = await API.listMessages(selectedChat.channelId);
-				console.log("res chat: ", res);
+				console.log("message chat: ", res);
 				console.log("sChat: ", selectedChat);
 				if (res)
 					return res;
@@ -442,50 +467,99 @@ export default function MainChat({selectedChat, setSelectedChat}: ChatProps) {
 		return player;
 	}
 
+	const kick = async (userId: number) => {
+
+		const response = await API.kick(selectedChat.channelId, userId);
+
+		console.log('Kick response: ', response);
+	}
+
     return (
         <>
-			<div id='chatmain' ref={chatRef} className='grid newChat bg-slate-500/ overflow-auto'>
+			<div id='chatmain' ref={chatRef} className='grid newChat overflow-auto'>
 				{messages &&
 					messages.map((message: any, index: number) => {
 
 					const player = getPlayerFromMessage(message.userId);
 
-					return (
-						<div className={message.userId == user.userId ? self : other} key={index}>
-							<div className='my-5'>
-							<div className='h-12 w-12 min-h-12 min-w-12 rounded-full'>
-								<img onClick={() => console.log(`pmessage: ${player.pseudo}`)} className='object-fill rounded-full' src={player.urlPhotoProfile} alt="Profile" />
+					if (player) {
+						return (
+							<div key={message.id} className={`flex ${message.userId === user.userId ? '' : 'flex-row-reverse'}`}>
+								<div className={message.userId == user.userId ? self : other} key={index}>
+									<div className='my-5 flex'>
+										<div className='h-12 w-12 min-h-12 min-w-12 rounded-full'>
+											<img onClick={() => console.log(`pmessage: ${player.pseudo}`)} className='object-fill rounded-full' src={player.urlPhotoProfile} alt="Profile" />
+										</div>
+										<strong className='flex mx-5 text-start'>{player.pseudo}</strong>
+									</div>
+									<div className='w-auto my-5 mx-5'>
+										<div className='break-words'>{message.content}</div>
+									</div>
+								</div>
 							</div>
-							</div>
-							<div className='max-w-sm my-5 mx-5'>
-							<strong className='flex text-start'>{player.pseudo}</strong>
-							<div className='break-all'>{message.content}</div>
-							</div>
-						</div>
-					)
+						)
+					}
 				})}
     		</div>
-		<div className="newMessage bg-slate-500/10 flex justify-center items-center">
-				<Input
-				className='mx-5'
-				value={value}
-				onChange={handleValue}
-				textColor='white'
-				placeholder='Send a message...'
-				focusBorderColor='pink.400'
-				onFocus={() => setInputFocus(true)}
-				onBlur={() => setInputFocus(false)}
-				onKeyDown={(event) => handleEnterInput(event)}
-				size='sm'
-      			/>
-				<motion.button 
-				whileHover={{rotate: -90}}
-				onClick={() => submitMessage()}
-				className='mr-5 h-7 w-10 border border-1 border-white text-gray flex justify-center items-center
-				  hover:text-white'>
-					<AiOutlineSend />
-				</motion.button>
-		</div>
+			<div className="newMessage bg-slate-500/10 flex justify-center items-center">
+					<Input
+					className='mx-5'
+					value={value}
+					onChange={handleValue}
+					textColor='white'
+					placeholder='Send a message...'
+					focusBorderColor='pink.400'
+					onFocus={() => setInputFocus(true)}
+					onBlur={() => setInputFocus(false)}
+					onKeyDown={(event) => handleEnterInput(event)}
+					size='sm'
+					/>
+					<motion.button 
+					whileHover={{rotate: -90}}
+					onClick={() => submitMessage()}
+					className='mr-5 h-7 w-10 rounded-full border border-1 border-white text-white flex justify-center items-center
+					hover:text-white'>
+						<AiOutlineSend />
+					</motion.button>
+			</div>
+			<div className='newUsers overflow-y-auto'>
+				{selectedChat && selectedChat.players.map((player: any) => (
+					<HoverCard key={player.id}>
+						<HoverCardTrigger>
+							<img className="my-5 rounded-full"
+								src={player.urlPhotoProfile} alt={player.pseudo}>
+							</img>
+						</HoverCardTrigger>
+						{user && user.id === selectedChat.ownerId && (
+							<HoverCardContent className='bg-black/70 text-white'>
+								<div key={player.id} className='flex h-7 justify-evenly items-center'>
+									<motion.button key={0} onClick={async () => {
+										console.log(`Set ${player.pseudo} admin`);
+										const res = await kick(player.id);
+
+										console.log(res);
+										}} whileHover={{scale: 1.25}}>
+											<FaUserTie />
+									</motion.button>
+									<motion.button key={1} onClick={() => console.log(`Ban ${player.pseudo}`)} whileHover={{scale: 1.25}}><FaUserAltSlash /></motion.button>
+									<motion.button key={2} onClick={() => console.log(`Kick ${player.pseudo}`)} whileHover={{scale: 1.25}}><FaUserMinus /></motion.button>
+									<motion.button key={3} onClick={() => console.log(`Mute ${player.pseudo}`)} whileHover={{scale: 1.25}}><BsMicMuteFill /></motion.button>
+									<div key={4} className={`${connected?.includes(player.id) ? 'text-emerald-400' : 'text-pink-700'}`}><GrStatusGoodSmall/></div>
+								</div>
+							</HoverCardContent>
+						)}
+					</HoverCard>
+				))}
+			</div>
+			{selectedChat && selectedChat !== -1 && selectedChat !== -2 && (
+				<div className='newAddUser flex justify-center items-center'>
+					<motion.button 
+					whileHover={{rotate: -90}}
+					className='rounded-full bg-black/50 h-7 w-7 border border-white text-white flex justify-center items-center'>
+						<BsPlusLg size={'1.5em'}/>
+					</motion.button>
+				</div>
+			)}
         </>
     );
 }

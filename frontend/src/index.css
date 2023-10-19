@@ -1,7 +1,11 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
- 
+
+#root {
+  background-color: bisque;
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -73,4 +77,21 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* Webkit browsers - scrollbar styles for all divs */
+div::-webkit-scrollbar {
+  width: 10px;
+}
+
+div::-webkit-scrollbar-track {
+  background: #67676700;
+}
+
+div::-webkit-scrollbar-thumb {
+  background: #FFFFFF33;
+}
+
+div::-webkit-scrollbar-thumb:hover {
+  background: #a7a7a720;
 }
