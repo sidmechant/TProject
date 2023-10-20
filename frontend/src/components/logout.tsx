@@ -1,3 +1,5 @@
+import socket from "../socket";
+
 export default function Logout() {
 
     const handleClearData = () => {
@@ -16,7 +18,15 @@ export default function Logout() {
         window.location.href = 'http://localhost:5173';
     };
 
+    const emitEvent = () => {
+        console.log("EMIT HELLO WORLD");
+        socket.emit('helloworld', 'test event hello');
+    }
+
     return (
+        <>
         <button className='fixed bg-black/70 text-white mx-5 my-5 w-20 h-20' onClick={handleClearData}>Logout</button>
+        <button className='fixed bg-black/70 text-white mx-44 my-5 w-20 h-20' onClick={emitEvent}>Emit event</button>
+        </>
     );
 }

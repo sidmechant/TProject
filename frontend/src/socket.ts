@@ -2,6 +2,7 @@ import { Socket, io } from 'socket.io-client';
 
 const URL : string = 'http://localhost:3000';
 
+
 const getCookie = (name: string) => {
     const cookies = document.cookie.split('; ');
     for (const cookie of cookies) {
@@ -13,21 +14,20 @@ const getCookie = (name: string) => {
     return null;
   };
 
-const jwt_token = getCookie('jwt_token');
-
 let socket: Socket;
+
+const jwt_token = getCookie('jwt_token');
 
 if (jwt_token) {
   localStorage.setItem('jwt_token', jwt_token as string);
   socket = io(URL, {
-    query: {jwt_token: jwt_token},
-    autoConnect: true,
-});
-} else {
-  socket = io(URL);
-}
-
-socket.connect();
+  query: {jwt_token: jwt_token},
+      autoConnect: true,
+  });
+  } else {
+    socket = io(URL);
+    socket.connect();
+  }
 
 export function setJwtToken(jwtToken: string) {
   socket.disconnect();
@@ -37,8 +37,6 @@ export function setJwtToken(jwtToken: string) {
   };
 
   socket.connect();
-
-  console.log("QUERY SOCK: ", socket.io.opts.query);
 }
 
 export default socket;

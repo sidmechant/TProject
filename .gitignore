@@ -6,6 +6,10 @@ backend/node_modules/
 frontend/node_modules/
 shared/node_modules/
 
+# Dist
+backend/dist/
+frontend/dist/
+
 # Environment files
 *.env
 .env.local

@@ -31,7 +31,7 @@ export class ChatGateway
   constructor(
     public readonly sessionManager: GatewaySessionManager,   private readonly eventEmitter: EventEmitter2, // Injectez votre GatewaySessionManager
     private readonly messageService: MessageService
-  ) { }
+  ) {}
 
   handleConnection(client: Socket) {
     //console.log("QUERY = ", client.handshake.query);

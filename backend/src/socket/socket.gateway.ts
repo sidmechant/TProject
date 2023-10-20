@@ -24,6 +24,12 @@ export class SocketGateway {
 
 	private userList: Map<number, any> = new Map();
 
+	@SubscribeMessage('helloworld')
+	handleHello(@ConnectedSocket() client: Socket, @MessageBody() msg: string) {
+		console.log(`Connected with ID: ${client.id}`);
+  		console.log(`socket hello world: ${msg}`);
+	}
+
 	@SubscribeMessage('joinChannel')
 	handleJoinChannel(@ConnectedSocket() client: Socket, @MessageBody() channelId: string) {
 		client.join(channelId);

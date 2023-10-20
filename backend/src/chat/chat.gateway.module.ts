@@ -9,11 +9,11 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { MessageService } from 'src/message/message.service';
 import { ChannelService } from 'src/channel/channel.service';
 import { UsersService } from 'src/users/users.service';
-import { SocketGateway } from 'src/socket/socket.gateway';
+import { SocketModule } from 'src/socket/socket.module';
 
 
 @Module({
-  imports: [FriendsModule],
+  imports: [FriendsModule, SocketModule],
   providers: [
     UsersService,
     MessageService,
@@ -23,7 +23,7 @@ import { SocketGateway } from 'src/socket/socket.gateway';
     FriendsService,
     GatewaySessionManager,
     EventEmitter2,
-    SocketGateway,
   ],
+  exports: [ChatGateway]
 })
 export class ChatGatewayModule {}

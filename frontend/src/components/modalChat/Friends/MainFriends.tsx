@@ -306,8 +306,16 @@ export default function MainFriends({selectedFriend, setSelectedFriend}: friendP
                                             )
                                         })
                                     }} whileHover={{scale: 1.25}}><IoMdPersonAdd /></motion.button>
-									<motion.button key={1} onClick={() => console.log(`Message ${user.pseudo}`)} whileHover={{scale: 1.25}}><BiSolidMessageSquareDetail /></motion.button>
-									<motion.button key={2} onClick={() => console.log(`Block ${user.pseudo}`)} whileHover={{scale: 1.25}}><FaUserAltSlash /></motion.button>
+									
+                                    <motion.button key={1} onClick={() => {
+                                        console.log(`Message ${user.pseudo}`)
+                                        }} whileHover={{scale: 1.25}}><BiSolidMessageSquareDetail /></motion.button>
+
+									<motion.button key={2} onClick={() => {
+                                        console.log(`Block ${user.pseudo}`)
+                                    }}
+                                     whileHover={{scale: 1.25}}><FaUserAltSlash /></motion.button>
+                                     
 								    </div>
                                 }
                                 starter={-100}

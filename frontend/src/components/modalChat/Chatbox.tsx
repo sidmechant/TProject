@@ -1,27 +1,20 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion } from "framer-motion"
-import { BsFillChatLeftTextFill, BsPlusLg } from 'react-icons/bs';
-import { AiOutlineClose, AiOutlineSend, AiOutlineMenu, AiFillPlusCircle } from 'react-icons/ai';
+import { BsFillChatLeftTextFill } from 'react-icons/bs';
+import { AiOutlineClose, AiOutlineMenu } from 'react-icons/ai';
 import { PiNotificationFill } from 'react-icons/pi';
 import { FaUserFriends } from 'react-icons/fa';
 import { MdChatBubble, MdMarkChatUnread} from 'react-icons/md';
-import { BsToggleOn, BsToggleOff, BsMicMuteFill, BsPlusCircle } from 'react-icons/bs';
-import { FaUsers, FaUser, FaUserTie, FaUserAltSlash, FaUserCog, FaUserMinus, FaUserPlus } from 'react-icons/fa';
+import { BsToggleOn, BsToggleOff } from 'react-icons/bs';
 import './Chatbox.scss';
-import { Slider, SliderFilledTrack, SliderThumb, SliderTrack, Input } from "@chakra-ui/react";
+import { Slider, SliderFilledTrack, SliderThumb, SliderTrack } from "@chakra-ui/react";
 import NavbarChat from './Chat/NavbarChat.tsx';
 import NavbarFriends from './Friends/NavbarFriends.tsx';
 import NavbarNotif from './Notif/NavbarNotif.tsx';
-import * as oldAPI from '../Profil/FetchApi.tsx';
 import * as API from './FetchAPiChat.tsx';
 import MainChat from './Chat/MainChat.tsx';
 import MainFriends from './Friends/MainFriends.tsx';
 import MainNotif from './Notif/MainNotif.tsx';
-import {
-	HoverCard,
-	HoverCardContent,
-	HoverCardTrigger,
-} from "@/components/ui/hover-card"
 
 interface User {
     id: number;
